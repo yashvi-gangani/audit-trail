@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+frontend/.env
+backend/.env
