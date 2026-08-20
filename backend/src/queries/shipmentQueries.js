@@ -12,7 +12,7 @@ router.use(authMiddleware);
 router.use(commandLimiter);
 
 // Shipment lifecycle commands
-router.post('/', requireRole(['admin', 'manager']), createShipment);
+router.post('/', requireRole(['admin', 'manager']), createShipment); // create
 router.post('/:id/items', requireRole(['admin', 'manager']), addItem);
 router.delete('/:id/items/:sku', requireRole(['admin', 'manager']), removeItem);
 router.put('/:id/status', requireRole(['admin', 'manager']), changeStatus);
