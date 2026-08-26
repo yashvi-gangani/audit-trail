@@ -1,4 +1,4 @@
-const EVENT_TYPES = require("../events/eventTypes");
+const { EVENT_TYPES } = require("../events/eventTypes");
 const { append } = require("../events/eventStore");
 
 const createShipment = async ({

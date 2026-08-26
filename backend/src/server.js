@@ -161,7 +161,7 @@ const startWithMemoryDB = async () => {
 
 const launchServer = () => {
   // Rebuild read-model projections after establishing the database connection
-  const { rebuildAllReadModels } = require('./src/projections/shipmentProjector');
+  const { rebuildAllReadModels } = require('./projections/shipmentProjector');
   rebuildAllReadModels().catch((e) =>
     console.warn('[Projector] Rebuild skipped:', e.message)
   );
