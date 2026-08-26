@@ -1,28 +1,55 @@
-const Event = require("../models/Event");
+const Event = require('../models/Event');
 
-const appendEvent = async (eventData) => {
-  return Event.create(eventData);
-};
+class EventRepository {
+  /**
+   * Append a new event document to the MongoDB Event Store.
+   * @param {Object} eventData - { aggregateId, eventType, payload, version, timestamp }
+   * @returns {Promise<Object>} Created event document
+   */
+  async append(eventData) {
+    const event = new Event(eventData);
+    return await event.save();
+  }
 
-const getEventsByAggregateId = async (aggregateId) => {
-  return Event.find({ aggregateId })
-    .sort({ version: 1 })
-    .lean();
-};
+  /**
+   * Fetch all events for a given aggregate in chronological version order.
+   * @param {string} aggregateId - Aggregate unique identifier
+   * @returns {Promise<Array>} Chronological list of events
+   */
+  async getByAggregateId(aggregateId) {
+    return await Event.find({ aggregateId })
+      .sort({ version: 1 })
+      .lean();
+  }
 
-const getLatestEvent = async (aggregateId) => {
-  return Event.findOne({ aggregateId })
-    .sort({ version: -1 })
-    .lean();
-};
+  /**
+   * Find the highest version number recorded for an aggregate.
+   * @param {string} aggregateId - Aggregate unique identifier
+   * @returns {Promise<number>} Current highest version (0 if aggregate has no events)
+   */
+  async getLatestVersion(aggregateId) {
+    const latestEvent = await Event.findOne({ aggregateId })
+      .sort({ version: -1 })
+      .select('version')
+      .lean();
+    
+    return latestEvent ? latestEvent.version : 0;
+  }
 
-const getEventCount = async (aggregateId) => {
-  return Event.countDocuments({ aggregateId });
-};
+  /**
+   * Fetch events starting from a specific version.
+   * @param {string} aggregateId 
+   * @param {number} fromVersion 
+   * @returns {Promise<Array>}
+   */
+  async getEventsFromVersion(aggregateId, fromVersion) {
+    return await Event.find({
+      aggregateId,
+      version: { $gte: fromVersion }
+    })
+      .sort({ version: 1 })
+      .lean();
+  }
+}
 
-module.exports = {
-  appendEvent,
-  getEventsByAggregateId,
-  getLatestEvent,
-  getEventCount,
-};
+module.exports = new EventRepository();

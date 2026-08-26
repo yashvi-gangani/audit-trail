@@ -1,53 +1,75 @@
-const {
-  appendEvent,
-  getEventsByAggregateId,
-  getLatestEvent,
-} = require("./eventRepository");
+const eventRepository = require('./eventRepository');
+const { VALID_EVENT_TYPES } = require('./eventTypes');
 
-const { createEventHash } = require("../utils/hash");
+class ConcurrencyError extends Error {
+  constructor(aggregateId, expectedVersion) {
+    super(`CONCURRENCY CONFLICT: Aggregate '${aggregateId}' already has event version ${expectedVersion}.`);
+    this.name = 'ConcurrencyError';
+    this.aggregateId = aggregateId;
+    this.expectedVersion = expectedVersion;
+  }
+}
 
-const append = async ({
-  aggregateId,
-  eventType,
-  payload,
-}) => {
-  const latestEvent = await getLatestEvent(aggregateId);
+class EventStore {
+  /**
+   * Save a new event to the Event Store log.
+   * 
+   * @param {Object} params
+   * @param {string} params.aggregateId - Aggregate ID
+   * @param {string} params.eventType - Valid event type string
+   * @param {Object} params.payload - Event payload data
+   * @param {number} [params.expectedVersion] - Optional expected version for concurrency checking
+   * @returns {Promise<Object>} The appended event document
+   */
+  async saveEvent({ aggregateId, eventType, payload, expectedVersion }) {
+    if (!aggregateId) {
+      throw new Error('EventStore.saveEvent: aggregateId is required');
+    }
+    
+    if (!VALID_EVENT_TYPES.includes(eventType)) {
+      throw new Error(`EventStore.saveEvent: Invalid eventType '${eventType}'`);
+    }
 
-  const version = latestEvent
-    ? latestEvent.version + 1
-    : 1;
+    // Determine target version
+    let nextVersion;
+    if (expectedVersion !== undefined && expectedVersion !== null) {
+      nextVersion = expectedVersion;
+    } else {
+      const currentVersion = await eventRepository.getLatestVersion(aggregateId);
+      nextVersion = currentVersion + 1;
+    }
 
-  const previousHash = latestEvent
-    ? latestEvent.hash
-    : null;
+    try {
+      const savedEvent = await eventRepository.append({
+        aggregateId,
+        eventType,
+        payload: payload || {},
+        version: nextVersion,
+        timestamp: new Date()
+      });
 
-  const timestamp = new Date();
+      console.log(`✅ [EventStore] Appended event '${eventType}' v${nextVersion} for aggregate '${aggregateId}'`);
+      return savedEvent;
+    } catch (error) {
+      // Catch MongoDB Duplicate Key Error (Code 11000) on compound index { aggregateId, version }
+      if (error.code === 11000) {
+        throw new ConcurrencyError(aggregateId, nextVersion);
+      }
+      throw error;
+    }
+  }
 
-  const hash = createEventHash({
-    aggregateId,
-    eventType,
-    payload,
-    timestamp,
-    version,
-    previousHash,
-  });
-
-  return appendEvent({
-    aggregateId,
-    eventType,
-    payload,
-    timestamp,
-    version,
-    previousHash,
-    hash,
-  });
-};
-
-const getStream = async (aggregateId) => {
-  return getEventsByAggregateId(aggregateId);
-};
+  /**
+   * Retrieve the full event stream for an aggregate to replay state.
+   * @param {string} aggregateId 
+   * @returns {Promise<Array>}
+   */
+  async getStream(aggregateId) {
+    return await eventRepository.getByAggregateId(aggregateId);
+  }
+}
 
 module.exports = {
-  append,
-  getStream,
+  eventStore: new EventStore(),
+  ConcurrencyError
 };
