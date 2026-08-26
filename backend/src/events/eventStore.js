@@ -32,7 +32,7 @@ const append = async ({
     previousHash,
   });
 
-  return appendEvent({
+  const event = await appendEvent({
     aggregateId,
     eventType,
     payload,
@@ -41,6 +41,13 @@ const append = async ({
     previousHash,
     hash,
   });
+
+  // Update the read model after the event is successfully stored.
+  const { projectEvent } = require("../projections/shipmentProjection");
+
+  await projectEvent(event);
+
+  return event;
 };
 
 const getStream = async (aggregateId) => {

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { VALID_EVENT_TYPES } = require('../events/eventTypes');
+const { VALID_EVENT_TYPES } = require("../events/eventTypes");
 
 /**
  * Event Store Mongoose Schema.
