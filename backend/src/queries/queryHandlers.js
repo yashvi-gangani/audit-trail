@@ -2,16 +2,29 @@ const {
   findAllShipments,
   findShipmentById,
   findShipmentHistory,
+  getShipmentStats,
 } = require("./shipmentQueries");
 
 const getShipments = async (req, res, next) => {
   try {
-    const shipments = await findAllShipments();
+    const { status, page, limit } = req.query;
+
+    const result = await findAllShipments({
+      status,
+      page,
+      limit,
+    });
 
     res.status(200).json({
       success: true,
-      count: shipments.length,
-      data: shipments,
+      count: result.shipments.length,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      },
+      data: result.shipments,
     });
   } catch (error) {
     next(error);
@@ -56,8 +69,22 @@ const getShipmentHistory = async (req, res, next) => {
   }
 };
 
+const getStats = async (req, res, next) => {
+  try {
+    const stats = await getShipmentStats();
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getShipments,
   getShipmentById,
   getShipmentHistory,
+  getStats,
 };
