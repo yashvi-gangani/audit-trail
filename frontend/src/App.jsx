@@ -1,7 +1,11 @@
 import AuditDashboard from "./pages/AuditDashboard";
 
 function App() {
-  return <AuditDashboard />;
+  return (
+    <div className="app-container">
+      <AuditDashboard />
+    </div>
+  );
 }
 
 export default App;

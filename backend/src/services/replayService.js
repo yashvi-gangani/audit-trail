@@ -19,5 +19,5 @@ const reconstructShipment = async (aggregateId) => {
 };
 
 module.exports = {
-  reconstructShipment,
+  reconstructShipment,  //ok
 };

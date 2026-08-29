@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 /**
- * Connect to MongoDB instance using Mongoose.
+ * Connect to MongoDB instance using Mongoose..
  */
 const connectDB = async () => {
   try {
@@ -17,4 +17,4 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB;
+module.exports = connectDB; //work

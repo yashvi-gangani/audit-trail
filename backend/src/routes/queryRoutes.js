@@ -1,5 +1,5 @@
 const express = require("express");
-
+//this is query route
 const {
   getShipments,
   getShipmentById,
