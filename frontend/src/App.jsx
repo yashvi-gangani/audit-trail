@@ -1,5 +1,4 @@
-import React from 'react';
-import { AuditDashboard } from './pages/AuditDashboard';
+import AuditDashboard from "./pages/AuditDashboard";
 
 function App() {
   return (
