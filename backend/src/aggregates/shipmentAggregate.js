@@ -1,5 +1,5 @@
 const { EVENT_TYPES } = require("../events/eventTypes");
-//
+
 const createInitialState = (aggregateId) => ({
   aggregateId,
   status: "UNKNOWN",
