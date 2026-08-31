@@ -202,4 +202,5 @@ const AuditDashboard = () => {
   );
 };
 
+export { AuditDashboard };
 export default AuditDashboard;
