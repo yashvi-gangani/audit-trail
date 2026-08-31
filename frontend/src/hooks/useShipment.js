@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  getShipments,
-  getShipmentStats,
-} from "../services/api";
+import { getShipments } from "../services/api";
 
 const useShipment = () => {
   const [shipments, setShipments] = useState([]);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -15,16 +11,11 @@ const useShipment = () => {
       setLoading(true);
       setError("");
 
-      const [shipmentResponse, statsResponse] =
-        await Promise.all([
-          getShipments(),
-          getShipmentStats(),
-        ]);
+      const response = await getShipments();
 
-      setShipments(shipmentResponse.data || []);
-      setStats(statsResponse.data || null);
+      setShipments(response.data || []);
     } catch (err) {
-      setError(err.message || "Failed to load dashboard");
+      setError(err.message || "Failed to load shipments");
     } finally {
       setLoading(false);
     }
@@ -36,7 +27,6 @@ const useShipment = () => {
 
   return {
     shipments,
-    stats,
     loading,
     error,
     refresh: fetchData,
