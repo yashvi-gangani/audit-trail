@@ -28,7 +28,7 @@ export function LandingPage({ onNavigate }) {
           lineHeight: '1.2', 
           maxWidth: '850px', 
           letterSpacing: '-0.03em',
-          background: 'linear-gradient(to right, #ffffff, #9aa4b7)',
+          background: 'linear-gradient(to right, #242020, #9aa4b7)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
@@ -47,7 +47,7 @@ export function LandingPage({ onNavigate }) {
               fontSize: '0.95rem',
               fontWeight: '600',
               background: 'var(--primary)',
-              color: '#ffffff',
+              color: '#000000',
               border: 'none',
               borderRadius: 'var(--radius-sm)',
               cursor: 'pointer',
@@ -80,6 +80,7 @@ export function LandingPage({ onNavigate }) {
           >
             View Shipment Catalog
           </button>
+          
         </div>
       </section>
 
@@ -164,7 +165,7 @@ export function LandingPage({ onNavigate }) {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid var(--border-color)', paddingTop: '2rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-        AuditTrail Supply Chain Platform • Built with React & Node.js Express CQRS Backend
+        AuditTrail Supply Chain Platform • Built for axlero innovative solutions • 2026
       </footer>
     </div>
   );
