@@ -1,114 +1,206 @@
-import React, { useState } from 'react';
-import { Database, Search, MapPin, Thermometer, ShieldCheck, Clock, User, Box } from 'lucide-react';
+import {
+  RefreshCw,
+  Package,
+  Truck,
+  MapPin,
+  Thermometer,
+} from "lucide-react";
 
-// Basic Mock Shipment Ledger Data
-const MOCK_SHIPMENT = {
-  id: "SH-2026-9041",
-  name: "BioCargo ColdChain (Insulins)",
-  origin: "Berlin Hub",
-  destination: "Liege Medical Center",
-  containerId: "C-9812",
-  events: [
-    { index: 1, type: "SHIPMENT_CREATED", timestamp: "2026-08-15T08:00:00Z", location: "Berlin Hub", temp: 4.2, status: "Pending", actor: "Alice Vance" },
-    { index: 2, type: "LOAD_CONTAINER", timestamp: "2026-08-15T09:30:00Z", location: "Berlin Hub", temp: 4.1, status: "Active", actor: "Bob Miller" },
-    { index: 3, type: "UPDATE_LOCATION", timestamp: "2026-08-15T12:00:00Z", location: "A2 Autobahn", temp: 4.5, status: "In Transit", actor: "GPS Tracker" },
-    { index: 4, type: "RECORD_TEMPERATURE", timestamp: "2026-08-15T15:00:00Z", location: "Bielefeld", temp: 5.2, status: "In Transit", actor: "IoT Sensor TS-8812" },
-    { index: 5, type: "CHANGE_STATUS", timestamp: "2026-08-16T14:45:00Z", location: "Liege Medical Center", temp: 4.7, status: "Delivered", actor: "Clarissa Jones" }
-  ]
+import useShipment from "../hooks/useShipment";
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case "DELIVERED":
+      return "status delivered";
+
+    case "IN_TRANSIT":
+      return "status transit";
+
+    case "LOADED":
+      return "status loaded";
+
+    default:
+      return "status";
+  }
 };
 
-export function AuditDashboard() {
-  const [scrubIndex, setScrubIndex] = useState(MOCK_SHIPMENT.events.length - 1);
-  const activeEvent = MOCK_SHIPMENT.events[scrubIndex];
+const AuditDashboard = () => {
+  const {
+    shipments,
+    loading,
+    error,
+    refresh,
+  } = useShipment();
+
+  const totalShipments = shipments.length;
+
+  const inTransit = shipments.filter(
+    (shipment) => shipment.status === "IN_TRANSIT"
+  ).length;
+
+  const delivered = shipments.filter(
+    (shipment) => shipment.status === "DELIVERED"
+  ).length;
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem', fontFamily: 'sans-serif', color: '#f0f3f9' }}>
-      
+    <div className="dashboard">
       {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
-        <Database size={28} style={{ color: '#2563eb' }} />
+      <header className="header">
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.4rem' }}>AuditTrail Ledger Dashboard</h1>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: '#9aa4b7' }}>Event-Sourced Supply Chain Audit Ledger</p>
+          <p className="eyebrow">AUDIT TRAIL</p>
+
+          <h1>Shipment Monitoring</h1>
+
+          <p className="subtitle">
+            Event-sourced logistics and audit ledger
+          </p>
         </div>
+
+        <button
+          className="refresh-button"
+          onClick={refresh}
+          disabled={loading}
+        >
+          <RefreshCw size={17} />
+
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </header>
 
-      {/* Main Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', marginTop: '1.5rem' }}>
-        
-        {/* Left Side: Summary Card */}
-        <aside style={{ background: '#111520', padding: '1.25rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>{MOCK_SHIPMENT.name}</h2>
-          <p style={{ fontSize: '0.8rem', color: '#9aa4b7' }}>ID: <code>{MOCK_SHIPMENT.id}</code></p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem', fontSize: '0.85rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Box size={16} color="#2563eb" /> Container: <strong>{MOCK_SHIPMENT.containerId}</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <MapPin size={16} color="#10b981" /> Current Location: <strong>{activeEvent.location}</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Thermometer size={16} color="#06b6d4" /> Current Temp: <strong>{activeEvent.temp}°C</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShieldCheck size={16} color="#f59e0b" /> Status: <strong>{activeEvent.status}</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <User size={16} color="#9aa4b7" /> Last Signatory: <strong>{activeEvent.actor}</strong>
-            </div>
+      {/* Error */}
+      {error && (
+        <div className="error">
+          {error}
+        </div>
+      )}
+
+      {/* Statistics */}
+      <section className="stats-grid">
+        <div className="stat-card">
+          <Package size={22} />
+
+          <div>
+            <span>Total Shipments</span>
+            <strong>{totalShipments}</strong>
           </div>
-        </aside>
+        </div>
 
-        {/* Right Side: Replay Scrubber & Event Stream */}
-        <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          {/* Replay Controller */}
-          <div style={{ background: '#111520', padding: '1.25rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <strong style={{ fontSize: '0.9rem' }}>Time-Travel Replay Controller</strong>
-              <span style={{ fontSize: '0.8rem', color: '#9aa4b7' }}>Block {scrubIndex + 1} of {MOCK_SHIPMENT.events.length}</span>
-            </div>
-            <input 
-              type="range" 
-              min="0" 
-              max={MOCK_SHIPMENT.events.length - 1} 
-              value={scrubIndex} 
-              onChange={(e) => setScrubIndex(Number(e.target.value))}
-              style={{ width: '100%', cursor: 'pointer' }}
-            />
+        <div className="stat-card">
+          <Truck size={22} />
+
+          <div>
+            <span>In Transit</span>
+            <strong>{inTransit}</strong>
           </div>
+        </div>
 
-          {/* Event Stream Log */}
-          <div style={{ background: '#111520', padding: '1.25rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <h3 style={{ fontSize: '1rem', marginTop: 0 }}>Event Stream</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {MOCK_SHIPMENT.events.map((ev, idx) => (
-                <div 
-                  key={ev.index} 
-                  style={{
-                    padding: '0.75rem',
-                    borderRadius: '6px',
-                    background: idx === scrubIndex ? 'rgba(37, 99, 235, 0.2)' : '#161c2c',
-                    border: idx === scrubIndex ? '1px solid #2563eb' : '1px solid rgba(255,255,255,0.05)',
-                    opacity: idx > scrubIndex ? 0.35 : 1
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                    <span>#{ev.index} {ev.type}</span>
-                    <span>{ev.temp}°C</span>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#9aa4b7', marginTop: '0.25rem' }}>
-                    {ev.location} • {ev.actor} • {new Date(ev.timestamp).toLocaleTimeString()}
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="stat-card">
+          <MapPin size={22} />
+
+          <div>
+            <span>Delivered</span>
+            <strong>{delivered}</strong>
           </div>
+        </div>
 
-        </main>
-      </div>
+        <div className="stat-card">
+          <Thermometer size={22} />
 
+          <div>
+            <span>Tracked Shipments</span>
+            <strong>{shipments.length}</strong>
+          </div>
+        </div>
+      </section>
+
+      {/* Shipment Table */}
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Shipments</h2>
+
+            <p>
+              Current state from the shipment read model
+            </p>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="empty">
+            Loading shipments...
+          </div>
+        ) : shipments.length === 0 ? (
+          <div className="empty">
+            No shipments available.
+          </div>
+        ) : (
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Container</th>
+                  <th>Status</th>
+                  <th>Route</th>
+                  <th>Vessel</th>
+                  <th>Location</th>
+                  <th>Temperature</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {shipments.map((shipment) => (
+                  <tr key={shipment.aggregateId}>
+                    <td>
+                      <strong>
+                        {shipment.containerNumber || "N/A"}
+                      </strong>
+
+                      <small>
+                        {shipment.aggregateId}
+                      </small>
+                    </td>
+
+                    <td>
+                      <span
+                        className={getStatusClass(
+                          shipment.status
+                        )}
+                      >
+                        {shipment.status || "UNKNOWN"}
+                      </span>
+                    </td>
+
+                    <td>
+                      {shipment.origin || "—"} →{" "}
+                      {shipment.destination || "—"}
+                    </td>
+
+                    <td>
+                      {shipment.vessel || "—"}
+                    </td>
+
+                    <td>
+                      {shipment.currentLocation || "—"}
+                    </td>
+
+                    <td>
+                      {shipment.temperature !== null &&
+                      shipment.temperature !== undefined
+                        ? `${shipment.temperature} ${
+                            shipment.temperatureUnit || ""
+                          }`
+                        : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
-}
+};
+
+export { AuditDashboard };
+export default AuditDashboard;

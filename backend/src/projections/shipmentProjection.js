@@ -42,7 +42,7 @@ const rebuildReadModel = async (aggregateId) => {
     throw new Error("aggregateId is required");
   }
 
-  const events = await getStream(aggregateId);
+  const events = await getStream(aggregateId);//events
 
   let state = createInitialState(aggregateId);
 
