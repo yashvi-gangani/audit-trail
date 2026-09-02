@@ -5,9 +5,12 @@ import {
   Truck,
   MapPin,
   Thermometer,
+  X,
+  Clock,
 } from "lucide-react";
 
 import useShipment from "../hooks/useShipment";
+import EventTimeline from "../components/EventTimeline";
 import SearchBar from "../components/SearchBar";
 
 const getStatusClass = (status) => {
@@ -28,10 +31,17 @@ const getStatusClass = (status) => {
 
 const AuditDashboard = () => {
   const {
+    shipments,
+    selectedShipment,
+    events,
     shipments = [],
     loading,
+    detailsLoading,
     error,
+    detailsError,
     refresh,
+    selectShipment,
+    clearSelection,
   } = useShipment();
 
   const [selectedId, setSelectedId] = useState(null);
@@ -90,6 +100,7 @@ const AuditDashboard = () => {
       </header>
 
       {/* Error */}
+      {error && <div className="error">{error}</div>}
       {error && (
         <div className="error" style={{ background: 'var(--danger-glow)', border: '1px solid var(--danger-border)', padding: '1rem', borderRadius: 'var(--radius-md)', color: 'var(--danger)', marginBottom: '1.5rem' }}>
           {error}
@@ -131,6 +142,159 @@ const AuditDashboard = () => {
         </div>
       </section>
 
+      {/* Shipment Details */}
+      {selectedShipment && (
+        <section className="panel shipment-details">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">SHIPMENT DETAILS</p>
+
+              <h2>
+                {selectedShipment.containerNumber || "N/A"}
+              </h2>
+
+              <p>
+                Aggregate ID: {selectedShipment.aggregateId}
+              </p>
+            </div>
+
+            <button
+              className="refresh-button"
+              onClick={clearSelection}
+            >
+              <X size={17} />
+              Close
+            </button>
+          </div>
+
+          {detailsLoading ? (
+            <div className="empty">
+              Loading shipment details...
+            </div>
+          ) : detailsError ? (
+            <div className="error">
+              {detailsError}
+            </div>
+          ) : (
+            <>
+              <div className="details-grid">
+                <div className="detail-item">
+                  <span>Status</span>
+
+                  <strong>
+                    <span
+                      className={getStatusClass(
+                        selectedShipment.status
+                      )}
+                    >
+                      {selectedShipment.status || "UNKNOWN"}
+                    </span>
+                  </strong>
+                </div>
+
+                <div className="detail-item">
+                  <span>Route</span>
+
+                  <strong>
+                    {selectedShipment.origin || "—"} →{" "}
+                    {selectedShipment.destination || "—"}
+                  </strong>
+                </div>
+
+                <div className="detail-item">
+                  <span>Vessel</span>
+
+                  <strong>
+                    {selectedShipment.vessel || "—"}
+                  </strong>
+                </div>
+
+                <div className="detail-item">
+                  <span>Current Location</span>
+
+                  <strong>
+                    {selectedShipment.currentLocation || "—"}
+                  </strong>
+                </div>
+
+                <div className="detail-item">
+                  <span>Temperature</span>
+
+                  <strong>
+                    {selectedShipment.temperature !== null &&
+                    selectedShipment.temperature !== undefined
+                      ? `${selectedShipment.temperature} ${
+                          selectedShipment.temperatureUnit || ""
+                        }`
+                      : "—"}
+                  </strong>
+                </div>
+
+                <div className="detail-item">
+                  <span>Last Event Version</span>
+
+                  <strong>
+                    {selectedShipment.lastEventVersion ?? "—"}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Event History */}
+              <div className="history-section">
+                <div className="history-header">
+                  <div>
+                    <h2>Event History</h2>
+
+                    <p>
+                      Immutable event stream for this shipment
+                    </p>
+                  </div>
+
+                  <Clock size={20} />
+                </div>
+
+                <EventTimeline
+                  events={events}
+                  loading={detailsLoading}
+                />
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* Shipment Table */}
+      {!selectedShipment && (
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>Shipments</h2>
+
+              <p>
+                Current state from the shipment read model
+              </p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="empty">
+              Loading shipments...
+            </div>
+          ) : shipments.length === 0 ? (
+            <div className="empty">
+              No shipments available.
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Container</th>
+                    <th>Status</th>
+                    <th>Route</th>
+                    <th>Vessel</th>
+                    <th>Location</th>
+                    <th>Temperature</th>
       {/* Side-by-Side Dashboard Panel */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 320px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
         
@@ -176,6 +340,57 @@ const AuditDashboard = () => {
                 </thead>
 
                 <tbody>
+                  {shipments.map((shipment) => (
+                    <tr
+                      key={shipment.aggregateId}
+                      onClick={() =>
+                        selectShipment(shipment.aggregateId)
+                      }
+                      className="shipment-row"
+                    >
+                      <td>
+                        <strong>
+                          {shipment.containerNumber || "N/A"}
+                        </strong>
+
+                        <small>
+                          {shipment.aggregateId}
+                        </small>
+                      </td>
+
+                      <td>
+                        <span
+                          className={getStatusClass(
+                            shipment.status
+                          )}
+                        >
+                          {shipment.status || "UNKNOWN"}
+                        </span>
+                      </td>
+
+                      <td>
+                        {shipment.origin || "—"} →{" "}
+                        {shipment.destination || "—"}
+                      </td>
+
+                      <td>
+                        {shipment.vessel || "—"}
+                      </td>
+
+                      <td>
+                        {shipment.currentLocation || "—"}
+                      </td>
+
+                      <td>
+                        {shipment.temperature !== null &&
+                        shipment.temperature !== undefined
+                          ? `${shipment.temperature} ${
+                              shipment.temperatureUnit || ""
+                            }`
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
                   {shipments
                     .filter(s => !selectedId || (s.aggregateId || s.id) === selectedId)
                     .map((shipment) => {
@@ -231,6 +446,7 @@ const AuditDashboard = () => {
             </div>
           )}
         </section>
+      )}
 
       </div>
     </div>

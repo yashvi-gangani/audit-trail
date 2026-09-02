@@ -59,6 +59,11 @@ h1 {
   background: #f0f2f4;
 }
 
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -180,6 +185,160 @@ td small {
   color: #b42318;
 }
 
+/* Shipment Details */
+
+.shipment-details {
+  margin-bottom: 28px;
+}
+
+.shipment-details .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 24px;
+}
+
+.detail-item {
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.detail-item span {
+  display: block;
+  margin-bottom: 7px;
+  color: #697586;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item strong {
+  font-size: 14px;
+}
+
+/* Shipment Table Interaction */
+
+.shipment-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.shipment-row:hover {
+  background: #f8fafc;
+}
+
+/* Event History */
+
+.history-section {
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.history-header h2 {
+  margin: 0;
+}
+
+.history-header p {
+  margin: 6px 0 0;
+  color: #697586;
+  font-size: 14px;
+}
+
+/* Event Timeline */
+
+.event-timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.event-timeline::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: #e1e5e9;
+}
+
+/* Event Card */
+
+.event-card {
+  position: relative;
+  margin-left: 28px;
+  padding: 16px 18px;
+  background: #fafbfc;
+  border: 1px solid #e1e5e9;
+  border-radius: 10px;
+}
+
+.event-card::before {
+  content: "";
+  position: absolute;
+  left: -27px;
+  top: 19px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #17202a;
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px #d5dbe1;
+}
+
+.event-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.event-card-header strong {
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+.event-card-header span {
+  color: #697586;
+  font-size: 12px;
+}
+
+.event-card-time {
+  margin-top: 6px;
+  color: #697586;
+  font-size: 12px;
+}
+
+.event-data {
+  margin: 14px 0 0;
+  padding: 12px;
+  overflow-x: auto;
+  background: #f1f3f5;
+  border-radius: 7px;
+  color: #344054;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Desktop / Tablet */
+
 @media (max-width: 900px) {
   .dashboard {
     padding: 20px;
@@ -193,7 +352,13 @@ td small {
     align-items: flex-start;
     gap: 20px;
   }
+
+  .details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
+
+/* Mobile */
 
 @media (max-width: 600px) {
   .header {
@@ -206,5 +371,37 @@ td small {
 
   h1 {
     font-size: 28px;
+  }
+
+  .shipment-details .panel-header {
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .history-section {
+    padding: 16px;
+  }
+
+  .event-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .event-card {
+    margin-left: 24px;
+  }
+
+  .event-card::before {
+    left: -23px;
+  }
+
+  .event-timeline::before {
+    left: 6px;
   }
 }
