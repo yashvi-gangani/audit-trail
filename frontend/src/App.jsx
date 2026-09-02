@@ -4,6 +4,7 @@ import { LandingPage } from './pages/LandingPage';
 import { AuditDashboard } from './pages/AuditDashboard';
 import { ShipmentCatalog } from './pages/ShipmentCatalog';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { SearchBar } from './components/SearchBar';
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');

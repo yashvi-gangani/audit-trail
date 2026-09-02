@@ -10,32 +10,32 @@ export function Navbar({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <header style={{ 
-      background: 'var(--bg-secondary)', 
-      borderBottom: '1px solid var(--border-color)', 
-      position: 'sticky', 
-      top: 0, 
-      zIndex: 100 
+    <header style={{
+      background: 'var(--bg-secondary)',
+      borderBottom: '1px solid var(--border-color)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100
     }}>
-      <div style={{ 
-        maxWidth: '1400px', 
-        margin: '0 auto', 
-        padding: '0.75rem 1.5rem', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
+      <div style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        padding: '0.75rem 1.5rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         {/* Brand Logo */}
-        <div 
+        <div
           onClick={() => setActiveTab('home')}
           style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}
         >
-          <div style={{ 
-            background: 'var(--primary-glow)', 
-            border: '1px solid var(--primary)', 
-            borderRadius: 'var(--radius-sm)', 
-            padding: '0.4rem', 
-            display: 'flex' 
+          <div style={{
+            background: 'var(--primary-glow)',
+            border: '1px solid var(--primary)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '0.4rem',
+            display: 'flex'
           }}>
             <Database size={20} style={{ color: 'var(--primary)' }} />
           </div>
@@ -43,9 +43,7 @@ export function Navbar({ activeTab, setActiveTab }) {
             <span style={{ fontSize: '1.1rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               AuditTrail
             </span>
-            <span style={{ fontSize: '0.65rem', display: 'block', color: 'var(--text-secondary)' }}>
-              CQRS & Event Sourcing
-            </span>
+
           </div>
         </div>
 
