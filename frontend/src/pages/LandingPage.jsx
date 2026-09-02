@@ -165,7 +165,7 @@ export function LandingPage({ onNavigate }) {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid var(--border-color)', paddingTop: '2rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-        AuditTrail Supply Chain Platform • Built for axlero innovative solutions • 2026
+        AuditTrail Supply Chain Platform • Built for Axlero innovative solutions • 2026
       </footer>
     </div>
   );
