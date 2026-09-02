@@ -28,7 +28,7 @@ const handleLoadContainer = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: "Container loaded on ship",
+      message: "Container loaded on ship", //events
       event,
     });
   } catch (error) {

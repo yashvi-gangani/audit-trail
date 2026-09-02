@@ -12,7 +12,7 @@ router.post('/shipments', (req, res) => {
   });
 });
 
-// POST /api/commands/shipments/:id/move (Update shipment location)
+// POST /api/commands/shipments/:id/move (Update shipment location))
 router.post('/shipments/:id/move', (req, res) => {
   const { id } = req.params;
   const { location, latitude, longitude, actor } = req.body;
