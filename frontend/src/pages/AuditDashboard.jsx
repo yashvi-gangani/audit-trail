@@ -31,7 +31,6 @@ const getStatusClass = (status) => {
 
 const AuditDashboard = () => {
   const {
-    shipments,
     selectedShipment,
     events,
     shipments = [],
@@ -45,6 +44,15 @@ const AuditDashboard = () => {
   } = useShipment();
 
   const [selectedId, setSelectedId] = useState(null);
+  const handleSelect = (id) => {
+    setSelectedId(id);
+    selectShipment(id);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedId(null);
+    clearSelection();
+  };
 
   // Map shipments into SearchBar compatible format
   const formattedShipments = shipments.map(s => ({
@@ -160,7 +168,7 @@ const AuditDashboard = () => {
 
             <button
               className="refresh-button"
-              onClick={clearSelection}
+              onClick={handleClearSelection}
             >
               <X size={17} />
               Close
@@ -263,38 +271,6 @@ const AuditDashboard = () => {
         </section>
       )}
 
-      {/* Shipment Table */}
-      {!selectedShipment && (
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <h2>Shipments</h2>
-
-              <p>
-                Current state from the shipment read model
-              </p>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="empty">
-              Loading shipments...
-            </div>
-          ) : shipments.length === 0 ? (
-            <div className="empty">
-              No shipments available.
-            </div>
-          ) : (
-            <div className="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Container</th>
-                    <th>Status</th>
-                    <th>Route</th>
-                    <th>Vessel</th>
-                    <th>Location</th>
-                    <th>Temperature</th>
       {/* Side-by-Side Dashboard Panel */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 320px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
         
@@ -303,7 +279,7 @@ const AuditDashboard = () => {
           <SearchBar 
             shipments={formattedShipments}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={handleSelect}
             loading={loading}
           />
         </aside>
@@ -340,66 +316,14 @@ const AuditDashboard = () => {
                 </thead>
 
                 <tbody>
-                  {shipments.map((shipment) => (
-                    <tr
-                      key={shipment.aggregateId}
-                      onClick={() =>
-                        selectShipment(shipment.aggregateId)
-                      }
-                      className="shipment-row"
-                    >
-                      <td>
-                        <strong>
-                          {shipment.containerNumber || "N/A"}
-                        </strong>
-
-                        <small>
-                          {shipment.aggregateId}
-                        </small>
-                      </td>
-
-                      <td>
-                        <span
-                          className={getStatusClass(
-                            shipment.status
-                          )}
-                        >
-                          {shipment.status || "UNKNOWN"}
-                        </span>
-                      </td>
-
-                      <td>
-                        {shipment.origin || "—"} →{" "}
-                        {shipment.destination || "—"}
-                      </td>
-
-                      <td>
-                        {shipment.vessel || "—"}
-                      </td>
-
-                      <td>
-                        {shipment.currentLocation || "—"}
-                      </td>
-
-                      <td>
-                        {shipment.temperature !== null &&
-                        shipment.temperature !== undefined
-                          ? `${shipment.temperature} ${
-                              shipment.temperatureUnit || ""
-                            }`
-                          : "—"}
-                      </td>
-                    </tr>
-                  ))}
                   {shipments
-                    .filter(s => !selectedId || (s.aggregateId || s.id) === selectedId)
                     .map((shipment) => {
                       const id = shipment.aggregateId || shipment.id;
                       const isSelected = id === selectedId;
                       return (
                         <tr 
                           key={id} 
-                          onClick={() => setSelectedId(id)}
+                          onClick={() => handleSelect(id)}
                           style={{
                             borderBottom: '1px solid var(--border-color)',
                             background: isSelected ? 'var(--bg-tertiary)' : 'transparent',
@@ -446,9 +370,8 @@ const AuditDashboard = () => {
             </div>
           )}
         </section>
-      )}
-
       </div>
+
     </div>
   );
 };
