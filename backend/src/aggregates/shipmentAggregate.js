@@ -1,9 +1,9 @@
 const { EVENT_TYPES } = require("../events/eventTypes");
 
-const createInitialState = (aggregateId) => ({
+const createInitialState = (aggregateId) => ({  //types
   aggregateId,
   status: "UNKNOWN",
-  containerNumber: null,
+  containerNumber: null,  
   origin: null,
   destination: null,
   vessel: null,
