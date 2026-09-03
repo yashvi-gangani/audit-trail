@@ -8,8 +8,8 @@ const queryRoutes = require('./routes/queryRoutes');
 const app = express();
 
 // Standard Middlewares
-app.use(cors());
-app.use(express.json());
+app.use(cors()); 
+app.use(express.json());  
 
 // Bind separate Command (Write) and Query (Read) entry points
 app.use('/api/commands', commandRoutes);
@@ -27,3 +27,4 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+   

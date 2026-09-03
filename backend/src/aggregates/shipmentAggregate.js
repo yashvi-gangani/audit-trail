@@ -1,11 +1,11 @@
 const { EVENT_TYPES } = require("../events/eventTypes");
 
-const createInitialState = (aggregateId) => ({  //types
+const createInitialState = (aggregateId) => ({  //types 
   aggregateId,
   status: "UNKNOWN",
   containerNumber: null,  
   origin: null,
-  destination: null,
+  destination: null,  
   vessel: null,
   currentLocation: null,
   temperature: null,
@@ -35,12 +35,12 @@ const applyEvent = (state, event) => {
       nextState.status = "IN_TRANSIT";
       nextState.vessel = event.payload?.vessel || null;
       nextState.loadedAt = event.timestamp;
-      break;
+      break; 
 
     case EVENT_TYPES.CONTAINER_MOVED:
       nextState.currentLocation =
         event.payload?.location || null;
-      break;
+      break; 
 
     case EVENT_TYPES.TEMPERATURE_SPIKE:
       nextState.temperature =
@@ -49,7 +49,7 @@ const applyEvent = (state, event) => {
         event.payload?.unit || null;
       break;
 
-    case EVENT_TYPES.ARRIVED_AT_PORT:
+    case EVENT_TYPES.ARRIVED_AT_PORT:     
       nextState.status = "ARRIVED";
       nextState.currentLocation =
         event.payload?.port ||
@@ -85,4 +85,4 @@ module.exports = {
   createInitialState,
   applyEvent,
   replayEvents,
-};
+};         

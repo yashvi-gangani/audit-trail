@@ -9,7 +9,7 @@ const {
 
 const router = express.Router();
 
-router.get("/shipments", getShipments);
+router.get("/shipments", getShipments);     //routes 
 
 router.get("/shipments/stats", getStats);
 
