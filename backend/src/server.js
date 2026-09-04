@@ -11,7 +11,7 @@ process.on("unhandledRejection", (reason) => {
   console.error("[FATAL] Unhandled Rejection:", reason);
 });
 
-require("dotenv").config();
+require("dotenv").config(); //dot
 
 const express = require("express");
 const mongoose = require("mongoose");
