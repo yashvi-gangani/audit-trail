@@ -1,5 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Cpu, Thermometer, History, ArrowRight, CheckCircle2, Lock, Database } from 'lucide-react';
+
+const featureData = [
+  {
+    icon: Lock,
+    title: "Append-Only Event Store",
+    desc: "Every action is saved as a discrete event document. Database middleware enforces strict immutability, preventing updates or deletions of historical records.",
+    color: "#2563eb"
+  },
+  {
+    icon: Cpu,
+    title: "CQRS Pattern Segregation",
+    desc: "Write operations (Commands) and Read operations (Queries) are split into dedicated channels, allowing ultra-fast read models without locking event logs.",
+    color: "#7c3aed"
+  },
+  {
+    icon: Thermometer,
+    title: "Thermal Telemetry Tracking",
+    desc: "Monitors cold-chain storage parameters with real-time temperature graph telemetry, flagging safety threshold excursions automatically.",
+    color: "#059669"
+  },
+  {
+    icon: History,
+    title: "State Replay Scrubber",
+    desc: "Interactive time-travel controller allows auditors to scrub through event streams block-by-block and reconstruct the shipment state at any point in history.",
+    color: "#d97706"
+  }
+];
+
+function RotatingFeatureCards() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % featureData.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="feature-cards-grid">
+      {featureData.map((item, index) => {
+        const IconComponent = item.icon;
+        const isActive = activeIndex === index;
+        return (
+          <div
+            key={index}
+            className={`feature-card ${isActive ? 'active' : ''}`}
+            onClick={() => setActiveIndex(index)}
+            onMouseEnter={() => setActiveIndex(index)}
+          >
+            <div className="feature-card-indicator" />
+            <div
+              className="feature-icon-wrapper"
+              style={{
+                borderColor: isActive ? item.color : '#e2e8f0',
+                color: isActive ? item.color : '#475569',
+                background: isActive ? `${item.color}18` : '#f8fafc'
+              }}
+            >
+              <IconComponent size={22} style={{ color: isActive ? item.color : '#475569' }} />
+            </div>
+            <h3>{item.title}</h3>
+            <p>{item.desc}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function LandingPage({ onNavigate }) {
   return (
@@ -115,52 +184,12 @@ export function LandingPage({ onNavigate }) {
       <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div style={{ textAlign: 'center' }}>
           <h2 style={{ fontSize: '1.75rem', fontWeight: '700' }}>Core Architectural Capabilities</h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.4rem', fontSize: '0.95rem' }}>Designed to meet strict regulatory and compliance audit standards</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.4rem', fontSize: '0.95rem' }}>
+            Designed to meet strict regulatory and compliance audit standards
+          </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
-          
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'var(--primary-glow)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-sm)', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Lock size={20} style={{ color: 'var(--primary)' }} />
-            </div>
-            <h3 style={{ fontSize: '1.1rem' }}>Append-Only Event Store</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Every action is saved as a discrete event document. Database middleware enforces strict immutability, preventing updates or deletions of historical records.
-            </p>
-          </div>
-
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'var(--success-glow)', border: '1px solid var(--success)', borderRadius: 'var(--radius-sm)', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Cpu size={20} style={{ color: 'var(--success)' }} />
-            </div>
-            <h3 style={{ fontSize: '1.1rem' }}>CQRS Pattern Segregation</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Write operations (Commands) and Read operations (Queries) are split into dedicated channels, allowing ultra-fast read models without locking event logs.
-            </p>
-          </div>
-
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'var(--info-glow)', border: '1px solid var(--info)', borderRadius: 'var(--radius-sm)', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Thermometer size={20} style={{ color: 'var(--info)' }} />
-            </div>
-            <h3 style={{ fontSize: '1.1rem' }}>Thermal Telemetry Tracking</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Monitors cold-chain storage parameters with real-time temperature graph telemetry, flagging safety threshold excursions automatically.
-            </p>
-          </div>
-
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'var(--warning-glow)', border: '1px solid var(--warning)', borderRadius: 'var(--radius-sm)', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <History size={20} style={{ color: 'var(--warning)' }} />
-            </div>
-            <h3 style={{ fontSize: '1.1rem' }}>State Replay Scrubber</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Interactive time-travel controller allows auditors to scrub through event streams block-by-block and reconstruct the shipment state at any point in history.
-            </p>
-          </div>
-
-        </div>
+        <RotatingFeatureCards />
       </section>
 
       {/* Footer */}
