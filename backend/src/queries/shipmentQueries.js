@@ -1,5 +1,6 @@
 const ShipmentReadModel = require("../models/ShipmentReadModel");
 const Event = require("../models/Event");
+const { assessShipmentsRisk } = require("../services/shipmentRiskService");
 
 const findAllShipments = async ({
   status,
@@ -18,26 +19,36 @@ const findAllShipments = async ({
   const skip = (currentPage - 1) * pageSize;
 
   const [shipments, total] = await Promise.all([
-    ShipmentReadModel.find(filter)
-      .sort({ updatedAt: -1 })
-      .skip(skip)
-      .limit(pageSize)
-      .lean(),
+  ShipmentReadModel.find(filter)
+    .sort({ updatedAt: -1 })
+    .skip(skip)
+    .limit(pageSize)
+    .lean(),
 
-    ShipmentReadModel.countDocuments(filter),
-  ]);
+  ShipmentReadModel.countDocuments(filter),
+]);
+
+const shipmentsWithRisk = assessShipmentsRisk(shipments);
 
   return {
-    shipments,
-    total,
-    page: currentPage,
-    limit: pageSize,
-    totalPages: Math.ceil(total / pageSize),
-  };
+  shipments: shipmentsWithRisk,
+  total,
+  page: currentPage,
+  limit: pageSize,
+  totalPages: Math.ceil(total / pageSize),
+};
 };
 
 const findShipmentById = async (aggregateId) => {
-  return ShipmentReadModel.findOne({ aggregateId }).lean();
+  const shipment = await ShipmentReadModel.findOne({ aggregateId }).lean();
+
+  if (!shipment) {
+    return null;
+  }
+
+  const [shipmentWithRisk] = assessShipmentsRisk([shipment]);
+
+  return shipmentWithRisk;
 };
 
 const findShipmentHistory = async (aggregateId) => {
