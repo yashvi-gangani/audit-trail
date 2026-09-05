@@ -44,6 +44,15 @@ const AuditDashboard = () => {
   } = useShipment();
 
   const [selectedId, setSelectedId] = useState(null);
+  const handleSelect = (id) => {
+    setSelectedId(id);
+    selectShipment(id);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedId(null);
+    clearSelection();
+  };
 
   // Map shipments into SearchBar compatible format
   const formattedShipments = shipments.map((s) => ({
@@ -260,6 +269,10 @@ const AuditDashboard = () => {
             </div>
 
             <button className="refresh-button" onClick={clearSelection}>
+            <button
+              className="refresh-button"
+              onClick={handleClearSelection}
+            >
               <X size={17} />
               Close
             </button>
@@ -399,7 +412,7 @@ const AuditDashboard = () => {
           <SearchBar
             shipments={formattedShipments}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={handleSelect}
             loading={loading}
           />
         </aside>
@@ -537,12 +550,62 @@ const AuditDashboard = () => {
                       </td>
                     </tr>
                   ))}
+                  {shipments
+                    .map((shipment) => {
+                      const id = shipment.aggregateId || shipment.id;
+                      const isSelected = id === selectedId;
+                      return (
+                        <tr 
+                          key={id} 
+                          onClick={() => handleSelect(id)}
+                          style={{
+                            borderBottom: '1px solid var(--border-color)',
+                            background: isSelected ? 'var(--bg-tertiary)' : 'transparent',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <td style={{ padding: '0.75rem' }}>
+                            <strong style={{ display: 'block' }}>
+                              {shipment.containerNumber || "N/A"}
+                            </strong>
+                            <small className="code" style={{ fontSize: '0.7rem' }}>
+                              {id}
+                            </small>
+                          </td>
+
+                          <td style={{ padding: '0.75rem' }}>
+                            <span className={getStatusClass(shipment.status)}>
+                              {shipment.status || "UNKNOWN"}
+                            </span>
+                          </td>
+
+                          <td style={{ padding: '0.75rem' }}>
+                            {shipment.origin || "—"} → {shipment.destination || "—"}
+                          </td>
+
+                          <td style={{ padding: '0.75rem' }}>
+                            {shipment.vessel || "—"}
+                          </td>
+
+                          <td style={{ padding: '0.75rem' }}>
+                            {shipment.currentLocation || "—"}
+                          </td>
+
+                          <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
+                            {shipment.temperature !== null && shipment.temperature !== undefined
+                              ? `${shipment.temperature} ${shipment.temperatureUnit || "°C"}`
+                              : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
           )}
         </section>
       </div>
+
     </div>
   );
 };
