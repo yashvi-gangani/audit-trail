@@ -3,7 +3,7 @@ const { VALID_EVENT_TYPES } = require("../events/eventTypes");
 
 /**
  * Event Store Mongoose Schema.
- * Represents an immutable, append-only domain event.
+ * Represents an immutable, append-only domain event..
  */
 const eventSchema = new mongoose.Schema(
   {
