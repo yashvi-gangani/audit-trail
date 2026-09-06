@@ -1,7 +1,7 @@
 //install the crypto and use it
 const crypto = require("crypto");
 
-const createEventHash = ({
+const createEventHash = ({ //hashes
   aggregateId,
   eventType,
   payload,
