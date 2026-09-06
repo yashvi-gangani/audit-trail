@@ -120,7 +120,11 @@ const AuditDashboard = () => {
 
         <button
           className="refresh-button"
-          onClick={refresh}
+          onClick={() => {
+            clearSelection();
+            setSelectedId(null);
+            refresh();
+          }}
           disabled={loading}
           style={{
             display: "flex",
@@ -268,11 +272,7 @@ const AuditDashboard = () => {
               <p>Aggregate ID: {selectedShipment.aggregateId}</p>
             </div>
 
-            <button className="refresh-button" onClick={clearSelection}>
-            <button
-              className="refresh-button"
-              onClick={handleClearSelection}
-            >
+            <button className="refresh-button" onClick={handleClearSelection}>
               <X size={17} />
               Close
             </button>
@@ -489,7 +489,7 @@ const AuditDashboard = () => {
                   {shipments.map((shipment) => (
                     <tr
                       key={shipment.aggregateId}
-                      onClick={() => selectShipment(shipment.aggregateId)}
+                      onClick={() => handleSelect(shipment.aggregateId)}
                       className="shipment-row"
                     >
                       <td>
@@ -550,62 +550,72 @@ const AuditDashboard = () => {
                       </td>
                     </tr>
                   ))}
-                  {shipments
-                    .map((shipment) => {
-                      const id = shipment.aggregateId || shipment.id;
-                      const isSelected = id === selectedId;
-                      return (
-                        <tr 
-                          key={id} 
-                          onClick={() => handleSelect(id)}
+                  {shipments.map((shipment) => {
+                    const id = shipment.aggregateId || shipment.id;
+                    const isSelected = id === selectedId;
+                    return (
+                      <tr
+                        key={id}
+                        onClick={() => handleSelect(id)}
+                        style={{
+                          borderBottom: "1px solid var(--border-color)",
+                          background: isSelected
+                            ? "var(--bg-tertiary)"
+                            : "transparent",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <td style={{ padding: "0.75rem" }}>
+                          <strong style={{ display: "block" }}>
+                            {shipment.containerNumber || "N/A"}
+                          </strong>
+                          <small
+                            className="code"
+                            style={{ fontSize: "0.7rem" }}
+                          >
+                            {id}
+                          </small>
+                        </td>
+
+                        <td style={{ padding: "0.75rem" }}>
+                          <span className={getStatusClass(shipment.status)}>
+                            {shipment.status || "UNKNOWN"}
+                          </span>
+                        </td>
+
+                        <td style={{ padding: "0.75rem" }}>
+                          {shipment.origin || "—"} →{" "}
+                          {shipment.destination || "—"}
+                        </td>
+
+                        <td style={{ padding: "0.75rem" }}>
+                          {shipment.vessel || "—"}
+                        </td>
+
+                        <td style={{ padding: "0.75rem" }}>
+                          {shipment.currentLocation || "—"}
+                        </td>
+
+                        <td
                           style={{
-                            borderBottom: '1px solid var(--border-color)',
-                            background: isSelected ? 'var(--bg-tertiary)' : 'transparent',
-                            cursor: 'pointer'
+                            padding: "0.75rem",
+                            fontFamily: "var(--font-mono)",
                           }}
                         >
-                          <td style={{ padding: '0.75rem' }}>
-                            <strong style={{ display: 'block' }}>
-                              {shipment.containerNumber || "N/A"}
-                            </strong>
-                            <small className="code" style={{ fontSize: '0.7rem' }}>
-                              {id}
-                            </small>
-                          </td>
-
-                          <td style={{ padding: '0.75rem' }}>
-                            <span className={getStatusClass(shipment.status)}>
-                              {shipment.status || "UNKNOWN"}
-                            </span>
-                          </td>
-
-                          <td style={{ padding: '0.75rem' }}>
-                            {shipment.origin || "—"} → {shipment.destination || "—"}
-                          </td>
-
-                          <td style={{ padding: '0.75rem' }}>
-                            {shipment.vessel || "—"}
-                          </td>
-
-                          <td style={{ padding: '0.75rem' }}>
-                            {shipment.currentLocation || "—"}
-                          </td>
-
-                          <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-                            {shipment.temperature !== null && shipment.temperature !== undefined
-                              ? `${shipment.temperature} ${shipment.temperatureUnit || "°C"}`
-                              : "—"}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                          {shipment.temperature !== null &&
+                          shipment.temperature !== undefined
+                            ? `${shipment.temperature} ${shipment.temperatureUnit || "°C"}`
+                            : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </section>
       </div>
-
     </div>
   );
 };
