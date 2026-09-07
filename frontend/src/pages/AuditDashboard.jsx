@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   RefreshCw,
   Package,
@@ -7,11 +7,15 @@ import {
   Thermometer,
   X,
   Clock,
+  AlertTriangle,
+  Activity,
+  Timer,
 } from "lucide-react";
 
 import useShipment from "../hooks/useShipment";
 import EventTimeline from "../components/EventTimeline";
 import SearchBar from "../components/SearchBar";
+import { getShipmentStats } from "../services/api";
 
 const getStatusClass = (status) => {
   switch (status) {
@@ -26,6 +30,19 @@ const getStatusClass = (status) => {
 
     default:
       return "status";
+  }
+};
+
+const getRiskClass = (riskLevel) => {
+  switch (riskLevel) {
+    case "HIGH":
+      return "danger";
+
+    case "MEDIUM":
+      return "warning";
+
+    default:
+      return "success";
   }
 };
 
@@ -44,6 +61,11 @@ const AuditDashboard = () => {
   } = useShipment();
 
   const [selectedId, setSelectedId] = useState(null);
+
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState("");
+
   const handleSelect = (id) => {
     setSelectedId(id);
     selectShipment(id);
@@ -54,32 +76,70 @@ const AuditDashboard = () => {
     clearSelection();
   };
 
-  // Map shipments into SearchBar compatible format
-  const formattedShipments = shipments.map((s) => ({
-    id: s.aggregateId || s.id,
-    name: s.containerNumber
-      ? `Container ${s.containerNumber}`
-      : s.name || s.aggregateId,
-    status: s.status || "PENDING",
-    destination: s.destination || "Destination N/A",
-    origin: s.origin || "Origin N/A",
-    currentTemp: s.temperature ? `${s.temperature} °C` : "N/A",
+  const fetchStats = async () => {
+    try {
+      setStatsLoading(true);
+      setStatsError("");
+
+      const response = await getShipmentStats();
+      setStats(response.data || null);
+    } catch (err) {
+      setStatsError(
+        err.message || "Failed to load shipment statistics",
+      );
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const formattedShipments = shipments.map((shipment) => ({
+    id: shipment.aggregateId || shipment.id,
+    name: shipment.containerNumber
+      ? `Container ${shipment.containerNumber}`
+      : shipment.name || shipment.aggregateId,
+    status: shipment.status || "PENDING",
+    destination: shipment.destination || "Destination N/A",
+    origin: shipment.origin || "Origin N/A",
+    currentTemp:
+      shipment.temperature !== null &&
+      shipment.temperature !== undefined
+        ? `${shipment.temperature} °C`
+        : "N/A",
   }));
 
-  const totalShipments = shipments.length;
+  const totalShipments = stats?.total ?? shipments.length;
 
-  const inTransit = shipments.filter(
-    (shipment) => shipment.status === "IN_TRANSIT",
-  ).length;
+  const inTransit =
+    stats?.inTransit ??
+    shipments.filter(
+      (shipment) => shipment.status === "IN_TRANSIT",
+    ).length;
 
-  const delivered = shipments.filter(
-    (shipment) => shipment.status === "DELIVERED",
-  ).length;
+  const delivered =
+    stats?.byStatus?.DELIVERED ??
+    shipments.filter(
+      (shipment) => shipment.status === "DELIVERED",
+    ).length;
+
+  const highRisk = stats?.byRisk?.HIGH ?? 0;
+
+  const temperatureIssues = stats?.temperatureIssues ?? 0;
+
+  const averageDuration =
+    stats?.averageShipmentDurationHours ?? 0;
 
   return (
     <div
       className="dashboard"
-      style={{ maxWidth: "1400px", margin: "0 auto", padding: "1.5rem" }}
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: "1.5rem",
+      }}
     >
       {/* Header */}
       <header
@@ -103,9 +163,16 @@ const AuditDashboard = () => {
           >
             AUDIT TRAIL
           </p>
-          <h1 style={{ fontSize: "1.6rem", margin: "0.2rem 0" }}>
+
+          <h1
+            style={{
+              fontSize: "1.6rem",
+              margin: "0.2rem 0",
+            }}
+          >
             Shipment Monitoring
           </h1>
+
           <p
             className="subtitle"
             style={{
@@ -124,8 +191,9 @@ const AuditDashboard = () => {
             clearSelection();
             setSelectedId(null);
             refresh();
+            fetchStats();
           }}
-          disabled={loading}
+          disabled={loading || statsLoading}
           style={{
             display: "flex",
             alignItems: "center",
@@ -135,16 +203,31 @@ const AuditDashboard = () => {
             border: "1px solid var(--border-color)",
             borderRadius: "var(--radius-sm)",
             color: "var(--text-primary)",
-            cursor: "pointer",
+            cursor:
+              loading || statsLoading
+                ? "not-allowed"
+                : "pointer",
+            opacity:
+              loading || statsLoading ? 0.7 : 1,
           }}
         >
-          <RefreshCw size={17} />
-          {loading ? "Refreshing..." : "Refresh"}
+          <RefreshCw
+            size={17}
+            style={{
+              animation:
+                loading || statsLoading
+                  ? "spin 1s linear infinite"
+                  : "none",
+            }}
+          />
+
+          {loading || statsLoading
+            ? "Refreshing..."
+            : "Refresh"}
         </button>
       </header>
 
-      {/* Error */}
-      {error && <div className="error">{error}</div>}
+      {/* Shipment Error */}
       {error && (
         <div
           className="error"
@@ -161,16 +244,35 @@ const AuditDashboard = () => {
         </div>
       )}
 
+      {/* Analytics Error */}
+      {statsError && (
+        <div
+          className="error"
+          style={{
+            background: "var(--danger-glow)",
+            border: "1px solid var(--danger-border)",
+            padding: "1rem",
+            borderRadius: "var(--radius-md)",
+            color: "var(--danger)",
+            marginBottom: "1.5rem",
+          }}
+        >
+          {statsError}
+        </div>
+      )}
+
       {/* Statistics Grid */}
       <section
         className="stats-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(190px, 1fr))",
           gap: "1rem",
           marginBottom: "1.5rem",
         }}
       >
+        {/* Total Shipments */}
         <div
           className="stat-card card"
           style={{
@@ -180,19 +282,33 @@ const AuditDashboard = () => {
             padding: "1rem",
           }}
         >
-          <Package size={24} style={{ color: "var(--primary)" }} />
+          <Package
+            size={24}
+            style={{ color: "var(--primary)" }}
+          />
+
           <div>
             <span
-              style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+              }}
             >
               Total Shipments
             </span>
-            <strong style={{ display: "block", fontSize: "1.25rem" }}>
-              {totalShipments}
+
+            <strong
+              style={{
+                display: "block",
+                fontSize: "1.25rem",
+              }}
+            >
+              {statsLoading ? "—" : totalShipments}
             </strong>
           </div>
         </div>
 
+        {/* In Transit */}
         <div
           className="stat-card card"
           style={{
@@ -202,19 +318,33 @@ const AuditDashboard = () => {
             padding: "1rem",
           }}
         >
-          <Truck size={24} style={{ color: "var(--info)" }} />
+          <Truck
+            size={24}
+            style={{ color: "var(--info)" }}
+          />
+
           <div>
             <span
-              style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+              }}
             >
               In Transit
             </span>
-            <strong style={{ display: "block", fontSize: "1.25rem" }}>
-              {inTransit}
+
+            <strong
+              style={{
+                display: "block",
+                fontSize: "1.25rem",
+              }}
+            >
+              {statsLoading ? "—" : inTransit}
             </strong>
           </div>
         </div>
 
+        {/* Delivered */}
         <div
           className="stat-card card"
           style={{
@@ -224,19 +354,33 @@ const AuditDashboard = () => {
             padding: "1rem",
           }}
         >
-          <MapPin size={24} style={{ color: "var(--success)" }} />
+          <MapPin
+            size={24}
+            style={{ color: "var(--success)" }}
+          />
+
           <div>
             <span
-              style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+              }}
             >
               Delivered
             </span>
-            <strong style={{ display: "block", fontSize: "1.25rem" }}>
-              {delivered}
+
+            <strong
+              style={{
+                display: "block",
+                fontSize: "1.25rem",
+              }}
+            >
+              {statsLoading ? "—" : delivered}
             </strong>
           </div>
         </div>
 
+        {/* High Risk */}
         <div
           className="stat-card card"
           style={{
@@ -246,113 +390,289 @@ const AuditDashboard = () => {
             padding: "1rem",
           }}
         >
-          <Thermometer size={24} style={{ color: "var(--warning)" }} />
+          <AlertTriangle
+            size={24}
+            style={{ color: "var(--danger)" }}
+          />
+
           <div>
             <span
-              style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+              }}
             >
-              Tracked Sensors
+              High Risk
             </span>
-            <strong style={{ display: "block", fontSize: "1.25rem" }}>
-              {shipments.length}
+
+            <strong
+              style={{
+                display: "block",
+                fontSize: "1.25rem",
+              }}
+            >
+              {statsLoading ? "—" : highRisk}
+            </strong>
+          </div>
+        </div>
+
+        {/* Temperature Issues */}
+        <div
+          className="stat-card card"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            padding: "1rem",
+          }}
+        >
+          <Thermometer
+            size={24}
+            style={{ color: "var(--warning)" }}
+          />
+
+          <div>
+            <span
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+              }}
+            >
+              Temperature Issues
+            </span>
+
+            <strong
+              style={{
+                display: "block",
+                fontSize: "1.25rem",
+              }}
+            >
+              {statsLoading ? "—" : temperatureIssues}
+            </strong>
+          </div>
+        </div>
+
+        {/* Average Duration */}
+        <div
+          className="stat-card card"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            padding: "1rem",
+          }}
+        >
+          <Timer
+            size={24}
+            style={{ color: "var(--primary)" }}
+          />
+
+          <div>
+            <span
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+              }}
+            >
+              Avg. Duration
+            </span>
+
+            <strong
+              style={{
+                display: "block",
+                fontSize: "1.25rem",
+              }}
+            >
+              {statsLoading
+                ? "—"
+                : `${averageDuration}h`}
             </strong>
           </div>
         </div>
       </section>
+
+      {/* Status Breakdown */}
+      {stats && (
+        <section
+          className="card"
+          style={{
+            padding: "1rem",
+            marginBottom: "1.5rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              marginBottom: "0.8rem",
+            }}
+          >
+            <Activity size={18} />
+
+            <strong>Shipment Status Overview</strong>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.75rem",
+            }}
+          >
+            {Object.entries(stats.byStatus || {}).map(
+              ([status, count]) => (
+                <div
+                  key={status}
+                  style={{
+                    padding: "0.55rem 0.8rem",
+                    background: "var(--bg-secondary)",
+                    border:
+                      "1px solid var(--border-color)",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  <strong>{status}</strong>: {count}
+                </div>
+              ),
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Shipment Details */}
       {selectedShipment && (
         <section className="panel shipment-details">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">SHIPMENT DETAILS</p>
+              <p className="eyebrow">
+                SHIPMENT DETAILS
+              </p>
 
-              <h2>{selectedShipment.containerNumber || "N/A"}</h2>
+              <h2>
+                {selectedShipment.containerNumber ||
+                  "N/A"}
+              </h2>
 
-              <p>Aggregate ID: {selectedShipment.aggregateId}</p>
+              <p>
+                Aggregate ID:{" "}
+                {selectedShipment.aggregateId}
+              </p>
             </div>
 
-            <button className="refresh-button" onClick={handleClearSelection}>
+            <button
+              className="refresh-button"
+              onClick={handleClearSelection}
+            >
               <X size={17} />
               Close
             </button>
           </div>
 
           {detailsLoading ? (
-            <div className="empty">Loading shipment details...</div>
+            <div className="empty">
+              Loading shipment details...
+            </div>
           ) : detailsError ? (
-            <div className="error">{detailsError}</div>
+            <div className="error">
+              {detailsError}
+            </div>
           ) : (
             <>
               <div className="details-grid">
+                {/* Status */}
                 <div className="detail-item">
                   <span>Status</span>
 
                   <strong>
-                    <span className={getStatusClass(selectedShipment.status)}>
-                      {selectedShipment.status || "UNKNOWN"}
+                    <span
+                      className={getStatusClass(
+                        selectedShipment.status,
+                      )}
+                    >
+                      {selectedShipment.status ||
+                        "UNKNOWN"}
                     </span>
                   </strong>
                 </div>
 
+                {/* Route */}
                 <div className="detail-item">
                   <span>Route</span>
 
                   <strong>
-                    {selectedShipment.origin || "—"} →{" "}
-                    {selectedShipment.destination || "—"}
+                    {selectedShipment.origin ||
+                      "—"}{" "}
+                    →{" "}
+                    {selectedShipment.destination ||
+                      "—"}
                   </strong>
                 </div>
 
+                {/* Vessel */}
                 <div className="detail-item">
                   <span>Vessel</span>
 
-                  <strong>{selectedShipment.vessel || "—"}</strong>
+                  <strong>
+                    {selectedShipment.vessel || "—"}
+                  </strong>
                 </div>
 
+                {/* Location */}
                 <div className="detail-item">
                   <span>Current Location</span>
 
-                  <strong>{selectedShipment.currentLocation || "—"}</strong>
+                  <strong>
+                    {selectedShipment.currentLocation ||
+                      "—"}
+                  </strong>
                 </div>
 
+                {/* Temperature */}
                 <div className="detail-item">
                   <span>Temperature</span>
 
                   <strong>
-                    {selectedShipment.temperature !== null &&
-                    selectedShipment.temperature !== undefined
+                    {selectedShipment.temperature !==
+                      null &&
+                    selectedShipment.temperature !==
+                      undefined
                       ? `${selectedShipment.temperature} ${
-                          selectedShipment.temperatureUnit || ""
+                          selectedShipment.temperatureUnit ||
+                          "°C"
                         }`
                       : "—"}
                   </strong>
                 </div>
 
+                {/* Last Event Version */}
                 <div className="detail-item">
                   <span>Last Event Version</span>
 
-                  <strong>{selectedShipment.lastEventVersion ?? "—"}</strong>
+                  <strong>
+                    {selectedShipment.lastEventVersion ??
+                      "—"}
+                  </strong>
                 </div>
 
+                {/* Risk Level */}
                 <div className="detail-item">
                   <span>Risk Level</span>
 
                   <strong>
                     <span
-                      className={`status ${
-                        selectedShipment.risk?.riskLevel === "HIGH"
-                          ? "danger"
-                          : selectedShipment.risk?.riskLevel === "MEDIUM"
-                            ? "warning"
-                            : "success"
-                      }`}
+                      className={`status ${getRiskClass(
+                        selectedShipment.risk?.riskLevel,
+                      )}`}
                     >
-                      {selectedShipment.risk?.riskLevel || "LOW"}
+                      {selectedShipment.risk
+                        ?.riskLevel || "LOW"}
                     </span>
                   </strong>
                 </div>
 
+                {/* Risk Analysis */}
                 <div
                   className="detail-item"
                   style={{
@@ -365,11 +685,13 @@ const AuditDashboard = () => {
                     style={{
                       margin: "0.5rem 0 0",
                       paddingLeft: "1.2rem",
-                      color: "var(--text-secondary)",
+                      color:
+                        "var(--text-secondary)",
                     }}
                   >
                     {(
-                      selectedShipment.risk?.reasons || [
+                      selectedShipment.risk
+                        ?.reasons || [
                         "No known shipment anomalies detected",
                       ]
                     ).map((reason, index) => (
@@ -385,30 +707,43 @@ const AuditDashboard = () => {
                   <div>
                     <h2>Event History</h2>
 
-                    <p>Immutable event stream for this shipment</p>
+                    <p>
+                      Immutable event stream for this
+                      shipment
+                    </p>
                   </div>
 
                   <Clock size={20} />
                 </div>
 
-                <EventTimeline events={events} loading={detailsLoading} />
+                <EventTimeline
+                  events={events}
+                  loading={detailsLoading}
+                />
               </div>
             </>
           )}
         </section>
       )}
 
-      {/* Side-by-Side Dashboard Panel */}
+      {/* Search + Shipment Ledger */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(280px, 320px) 1fr",
+          gridTemplateColumns:
+            "minmax(280px, 320px) 1fr",
           gap: "1.5rem",
           alignItems: "start",
         }}
       >
-        {/* Left Column: SearchBar Sidebar Component */}
-        <aside className="card" style={{ padding: "1rem", height: "600px" }}>
+        {/* Search */}
+        <aside
+          className="card"
+          style={{
+            padding: "1rem",
+            height: "600px",
+          }}
+        >
           <SearchBar
             shipments={formattedShipments}
             selectedId={selectedId}
@@ -417,21 +752,37 @@ const AuditDashboard = () => {
           />
         </aside>
 
-        {/* Right Column: Shipment Details Table Panel */}
-        <section className="panel card" style={{ padding: "1.25rem" }}>
-          <div className="panel-header" style={{ marginBottom: "1rem" }}>
-            <h2 style={{ fontSize: "1.1rem", margin: 0 }}>
-              Shipment Ledger Read Models
-            </h2>
-            <p
-              style={{
-                fontSize: "0.8rem",
-                color: "var(--text-secondary)",
-                margin: "0.2rem 0 0 0",
-              }}
-            >
-              Current state calculated dynamically from event stream projections
-            </p>
+        {/* Ledger Table */}
+        <section
+          className="panel card"
+          style={{ padding: "1.25rem" }}
+        >
+          <div
+            className="panel-header"
+            style={{ marginBottom: "1rem" }}
+          >
+            <div>
+              <h2
+                style={{
+                  fontSize: "1.1rem",
+                  margin: 0,
+                }}
+              >
+                Shipment Ledger Read Models
+              </h2>
+
+              <p
+                style={{
+                  fontSize: "0.8rem",
+                  color:
+                    "var(--text-secondary)",
+                  margin: "0.2rem 0 0",
+                }}
+              >
+                Current state calculated dynamically
+                from event stream projections
+              </p>
+            </div>
           </div>
 
           {loading ? (
@@ -457,7 +808,10 @@ const AuditDashboard = () => {
               No shipments available.
             </div>
           ) : (
-            <div className="table-wrapper" style={{ overflowX: "auto" }}>
+            <div
+              className="table-wrapper"
+              style={{ overflowX: "auto" }}
+            >
               <table
                 style={{
                   width: "100%",
@@ -469,143 +823,194 @@ const AuditDashboard = () => {
                 <thead>
                   <tr
                     style={{
-                      borderBottom: "1px solid var(--border-color)",
+                      borderBottom:
+                        "1px solid var(--border-color)",
                       color: "var(--text-muted)",
                       textTransform: "uppercase",
                       fontSize: "0.7rem",
                     }}
                   >
-                    <th style={{ padding: "0.75rem" }}>Container</th>
-                    <th style={{ padding: "0.75rem" }}>Status</th>
-                    <th style={{ padding: "0.75rem" }}>Route</th>
-                    <th style={{ padding: "0.75rem" }}>Vessel</th>
-                    <th style={{ padding: "0.75rem" }}>Location</th>
-                    <th style={{ padding: "0.75rem" }}>Temperature</th>
-                    <th style={{ padding: "0.75rem" }}>Risk</th>
+                    <th style={{ padding: "0.75rem" }}>
+                      Container
+                    </th>
+
+                    <th style={{ padding: "0.75rem" }}>
+                      Status
+                    </th>
+
+                    <th style={{ padding: "0.75rem" }}>
+                      Route
+                    </th>
+
+                    <th style={{ padding: "0.75rem" }}>
+                      Vessel
+                    </th>
+
+                    <th style={{ padding: "0.75rem" }}>
+                      Location
+                    </th>
+
+                    <th style={{ padding: "0.75rem" }}>
+                      Temperature
+                    </th>
+
+                    <th style={{ padding: "0.75rem" }}>
+                      Risk
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {shipments.map((shipment) => (
-                    <tr
-                      key={shipment.aggregateId}
-                      onClick={() => handleSelect(shipment.aggregateId)}
-                      className="shipment-row"
-                    >
-                      <td>
-                        <strong>{shipment.containerNumber || "N/A"}</strong>
-
-                        <small>{shipment.aggregateId}</small>
-                      </td>
-
-                      <td>
-                        <span className={getStatusClass(shipment.status)}>
-                          {shipment.status || "UNKNOWN"}
-                        </span>
-                      </td>
-
-                      <td>
-                        {shipment.origin || "—"} → {shipment.destination || "—"}
-                      </td>
-
-                      <td>{shipment.vessel || "—"}</td>
-
-                      <td>{shipment.currentLocation || "—"}</td>
-
-                      <td>
-                        {shipment.temperature !== null &&
-                        shipment.temperature !== undefined
-                          ? `${shipment.temperature} ${
-                              shipment.temperatureUnit || ""
-                            }`
-                          : "—"}
-                      </td>
-                      <td>
-                        <div>
-                          <span
-                            className={`status ${
-                              shipment.risk?.riskLevel === "HIGH"
-                                ? "danger"
-                                : shipment.risk?.riskLevel === "MEDIUM"
-                                  ? "warning"
-                                  : "success"
-                            }`}
-                          >
-                            {shipment.risk?.riskLevel || "LOW"}
-                          </span>
-
-                          {shipment.risk?.reasons?.length > 0 && (
-                            <small
-                              style={{
-                                display: "block",
-                                marginTop: "0.35rem",
-                                color: "var(--text-secondary)",
-                                lineHeight: "1.4",
-                              }}
-                            >
-                              {shipment.risk.reasons[0]}
-                            </small>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
                   {shipments.map((shipment) => {
-                    const id = shipment.aggregateId || shipment.id;
-                    const isSelected = id === selectedId;
+                    const id =
+                      shipment.aggregateId ||
+                      shipment.id;
+
+                    const isSelected =
+                      id === selectedId;
+
+                    const riskLevel =
+                      shipment.risk?.riskLevel ||
+                      "LOW";
+
                     return (
                       <tr
                         key={id}
-                        onClick={() => handleSelect(id)}
+                        onClick={() =>
+                          handleSelect(id)
+                        }
+                        className="shipment-row"
                         style={{
-                          borderBottom: "1px solid var(--border-color)",
+                          borderBottom:
+                            "1px solid var(--border-color)",
                           background: isSelected
                             ? "var(--bg-tertiary)"
                             : "transparent",
                           cursor: "pointer",
                         }}
                       >
-                        <td style={{ padding: "0.75rem" }}>
-                          <strong style={{ display: "block" }}>
-                            {shipment.containerNumber || "N/A"}
+                        {/* Container */}
+                        <td
+                          style={{
+                            padding: "0.75rem",
+                          }}
+                        >
+                          <strong
+                            style={{
+                              display: "block",
+                            }}
+                          >
+                            {shipment.containerNumber ||
+                              "N/A"}
                           </strong>
+
                           <small
                             className="code"
-                            style={{ fontSize: "0.7rem" }}
+                            style={{
+                              fontSize: "0.7rem",
+                            }}
                           >
                             {id}
                           </small>
                         </td>
 
-                        <td style={{ padding: "0.75rem" }}>
-                          <span className={getStatusClass(shipment.status)}>
-                            {shipment.status || "UNKNOWN"}
+                        {/* Status */}
+                        <td
+                          style={{
+                            padding: "0.75rem",
+                          }}
+                        >
+                          <span
+                            className={getStatusClass(
+                              shipment.status,
+                            )}
+                          >
+                            {shipment.status ||
+                              "UNKNOWN"}
                           </span>
                         </td>
 
-                        <td style={{ padding: "0.75rem" }}>
+                        {/* Route */}
+                        <td
+                          style={{
+                            padding: "0.75rem",
+                          }}
+                        >
                           {shipment.origin || "—"} →{" "}
                           {shipment.destination || "—"}
                         </td>
 
-                        <td style={{ padding: "0.75rem" }}>
-                          {shipment.vessel || "—"}
-                        </td>
-
-                        <td style={{ padding: "0.75rem" }}>
-                          {shipment.currentLocation || "—"}
-                        </td>
-
+                        {/* Vessel */}
                         <td
                           style={{
                             padding: "0.75rem",
-                            fontFamily: "var(--font-mono)",
                           }}
                         >
-                          {shipment.temperature !== null &&
-                          shipment.temperature !== undefined
-                            ? `${shipment.temperature} ${shipment.temperatureUnit || "°C"}`
+                          {shipment.vessel || "—"}
+                        </td>
+
+                        {/* Location */}
+                        <td
+                          style={{
+                            padding: "0.75rem",
+                          }}
+                        >
+                          {shipment.currentLocation ||
+                            "—"}
+                        </td>
+
+                        {/* Temperature */}
+                        <td
+                          style={{
+                            padding: "0.75rem",
+                            fontFamily:
+                              "var(--font-mono)",
+                          }}
+                        >
+                          {shipment.temperature !==
+                            null &&
+                          shipment.temperature !==
+                            undefined
+                            ? `${shipment.temperature} ${
+                                shipment.temperatureUnit ||
+                                "°C"
+                              }`
                             : "—"}
+                        </td>
+
+                        {/* Risk */}
+                        <td
+                          style={{
+                            padding: "0.75rem",
+                          }}
+                        >
+                          <div>
+                            <span
+                              className={`status ${getRiskClass(
+                                riskLevel,
+                              )}`}
+                            >
+                              {riskLevel}
+                            </span>
+
+                            {shipment.risk?.reasons
+                              ?.length > 0 && (
+                              <small
+                                style={{
+                                  display: "block",
+                                  marginTop: "0.35rem",
+                                  color:
+                                    "var(--text-secondary)",
+                                  lineHeight: "1.4",
+                                }}
+                              >
+                                {
+                                  shipment.risk
+                                    .reasons[0]
+                                }
+                              </small>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -622,3 +1027,4 @@ const AuditDashboard = () => {
 
 export { AuditDashboard };
 export default AuditDashboard;
+
