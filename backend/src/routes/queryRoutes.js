@@ -1,5 +1,5 @@
 const express = require("express");
-//this is query routes
+
 const {
   getShipments,
   getShipmentById,
@@ -9,7 +9,7 @@ const {
 
 const router = express.Router();
 
-router.get("/shipments", getShipments);     //routes 
+router.get("/shipments", getShipments);     
 
 router.get("/shipments/stats", getStats);
 
