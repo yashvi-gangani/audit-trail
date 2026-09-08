@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+//
 const shipmentReadModelSchema = new mongoose.Schema(
   {
     aggregateId: {
