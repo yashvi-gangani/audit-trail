@@ -11,7 +11,7 @@ const app = express();
 app.use(cors()); 
 app.use(express.json());  
 
-// Bind separate Command (Write) and Query (Read) entry points
+// Bind separate Command (Write) and Query (Read) entry points.
 app.use('/api/commands', commandRoutes);
 app.use('/api/queries', queryRoutes);
 

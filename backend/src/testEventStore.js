@@ -21,7 +21,7 @@ async function runVerificationTest() {
       aggregateId: testAggregateId,
       eventType: EVENT_TYPES.SHIPMENT_CREATED,
       payload: { origin: 'Berlin Hub', destination: 'Liege Medical Center' }
-    });
+    }); //sve event
 
     const e2 = await eventStore.saveEvent({
       aggregateId: testAggregateId,

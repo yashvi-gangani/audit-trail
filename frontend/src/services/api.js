@@ -35,3 +35,15 @@ export const getShipmentHistory = async (id) => {
 
   return response.json();
 };
+
+export const getShipmentStats = async () => {
+  const response = await fetch(
+    `${API_BASE_URL}/queries/shipments/stats`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch shipment statistics");
+  }
+
+  return response.json();
+};

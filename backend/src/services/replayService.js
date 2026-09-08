@@ -1,7 +1,7 @@
 const { getStream } = require("../events/eventStore");
 const { replayEvents } = require("../aggregates/shipmentAggregate");
 const { doesNotReject } = require("node:assert/strict");
-
+//
 const reconstructShipment = async (aggregateId) => {
   if (!aggregateId) {
     throw new Error("aggregateId is required");
@@ -20,6 +20,6 @@ const reconstructShipment = async (aggregateId) => {
 };
 
 module.exports = {
-  reconstructShipment,  //ok
+  reconstructShipment,  
 };    
 

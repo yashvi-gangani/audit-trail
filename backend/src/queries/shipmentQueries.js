@@ -1,5 +1,6 @@
 const ShipmentReadModel = require("../models/ShipmentReadModel");
 const Event = require("../models/Event");
+const { assessShipmentsRisk } = require("../services/shipmentRiskService");
 
 const findAllShipments = async ({
   status,
@@ -18,26 +19,36 @@ const findAllShipments = async ({
   const skip = (currentPage - 1) * pageSize;
 
   const [shipments, total] = await Promise.all([
-    ShipmentReadModel.find(filter)
-      .sort({ updatedAt: -1 })
-      .skip(skip)
-      .limit(pageSize)
-      .lean(),
+  ShipmentReadModel.find(filter)
+    .sort({ updatedAt: -1 })
+    .skip(skip)
+    .limit(pageSize)
+    .lean(),
 
-    ShipmentReadModel.countDocuments(filter),
-  ]);
+  ShipmentReadModel.countDocuments(filter),
+]);
+
+const shipmentsWithRisk = assessShipmentsRisk(shipments);
 
   return {
-    shipments,
-    total,
-    page: currentPage,
-    limit: pageSize,
-    totalPages: Math.ceil(total / pageSize),
-  };
+  shipments: shipmentsWithRisk,
+  total,
+  page: currentPage,
+  limit: pageSize,
+  totalPages: Math.ceil(total / pageSize),
+};
 };
 
 const findShipmentById = async (aggregateId) => {
-  return ShipmentReadModel.findOne({ aggregateId }).lean();
+  const shipment = await ShipmentReadModel.findOne({ aggregateId }).lean();
+
+  if (!shipment) {
+    return null;
+  }
+
+  const [shipmentWithRisk] = assessShipmentsRisk([shipment]);
+
+  return shipmentWithRisk;
 };
 
 const findShipmentHistory = async (aggregateId) => {
@@ -47,26 +58,59 @@ const findShipmentHistory = async (aggregateId) => {
 };
 
 const getShipmentStats = async () => {
-  const stats = await ShipmentReadModel.aggregate([
-    {
-      $group: {
-        _id: "$status",
-        count: { $sum: 1 },
-      },
-    },
-    {
-      $sort: { count: -1 },
-    },
-  ]);
+  const shipments = await ShipmentReadModel.find().lean();
 
-  const total = await ShipmentReadModel.countDocuments();
+  const shipmentsWithRisk = assessShipmentsRisk(shipments);
+
+  const total = shipmentsWithRisk.length;
+
+  const byStatus = shipmentsWithRisk.reduce((acc, shipment) => {
+    const status = shipment.status || "UNKNOWN";
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const byRisk = shipmentsWithRisk.reduce((acc, shipment) => {
+    const riskLevel = shipment.risk?.riskLevel || "LOW";
+    acc[riskLevel] = (acc[riskLevel] || 0) + 1;
+    return acc;
+  }, {});
+
+  const temperatureIssues = shipmentsWithRisk.filter(
+    (shipment) =>
+      typeof shipment.temperature === "number" &&
+      (shipment.temperature < 2 || shipment.temperature > 8)
+  ).length;
+
+  const inTransit = shipmentsWithRisk.filter(
+    (shipment) => shipment.status === "IN_TRANSIT"
+  ).length;
+
+  const completedShipments = shipmentsWithRisk.filter(
+    (shipment) => shipment.createdAt && shipment.arrivedAt
+  );
+
+  const averageShipmentDuration =
+    completedShipments.length > 0
+      ? completedShipments.reduce((totalDuration, shipment) => {
+          const duration =
+            new Date(shipment.arrivedAt) - new Date(shipment.createdAt);
+
+          return totalDuration + duration;
+        }, 0) /
+        completedShipments.length /
+        (1000 * 60 * 60)
+      : 0;
 
   return {
     total,
-    byStatus: stats.map((item) => ({
-      status: item._id || "UNKNOWN",
-      count: item.count,
-    })),
+    byStatus,
+    byRisk,
+    temperatureIssues,
+    inTransit,
+    averageShipmentDurationHours: Number(
+      averageShipmentDuration.toFixed(2)
+    ),
   };
 };
 

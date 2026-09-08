@@ -8,7 +8,8 @@ export function AnalyticsPage() {
       {/* Page Header */}
       <div>
         <h1 style={{ fontSize: '1.6rem', fontWeight: '700' }}>System Audit Analytics & Telemetry Reports</h1>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Real-time telemetry performance metrics and CQRS event stream throughput</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Real-time telemetry performance metrics and CQRS event stream throughout</p>
+
       </div>
 
       {/* Metrics Row */}
