@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 /**
  * Connect to MongoDB instance using Mongoose..
  */
-const connectDB = async () => {
+const connectDB = async () => { //hjh
   try {
     const connStr = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/audit_trail_db';
     const conn = await mongoose.connect(connStr, {

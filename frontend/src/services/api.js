@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5001/api";
+const API_BASE_URL = "http://localhost:5001/api"; //https api test
 //API
 export const getShipments = async () => {
   const response = await fetch(
@@ -9,7 +9,7 @@ export const getShipments = async () => {
     throw new Error("Failed to fetch shipments");
   }
 
-  return response.json();
+  return response.json(); //
 };
 
 export const getShipmentById = async (id) => {
