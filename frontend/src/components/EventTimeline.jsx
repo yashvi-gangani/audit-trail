@@ -18,7 +18,7 @@ const EventTimeline = ({ events = [], loading = false }) => {
   }
 
   return (
-    <div className="event-timeline">
+    <div className="event-timeline">  //events 
       {events.map((event) => (
         <EventCard
           key={`${event.aggregateId}-${event.version}`}
