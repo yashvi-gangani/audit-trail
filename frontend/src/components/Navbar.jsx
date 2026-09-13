@@ -39,7 +39,7 @@ export function Navbar({ activeTab, setActiveTab }) {
           background: scrolled 
             ? 'rgba(13, 17, 23, 0.85)' 
             : 'rgba(17, 24, 39, 0.65)',
-          backdropFilter: 'blur(16px) saturate(180%)',
+          backdropFilter: 'blur(14px) saturate(180%)',
           WebkitBackdropFilter: 'blur(16px) saturate(180%)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
           borderRadius: '9999px',
