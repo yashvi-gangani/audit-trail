@@ -47,3 +47,15 @@ export const getShipmentStats = async () => {
 
   return response.json();
 };
+
+export const getShipmentReplay = async (id, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const url = `${API_BASE_URL}/queries/shipments/${id}/replay${query ? `?${query}` : ""}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to replay shipment state");
+  }
+
+  return response.json();
+};
