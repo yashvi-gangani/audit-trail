@@ -4,7 +4,7 @@ const {
   findShipmentHistory,
   getShipmentStats,
 } = require("./shipmentQueries");
-//
+
 const getShipments = async (req, res, next) => {
   try {
     const { status, page, limit } = req.query;
