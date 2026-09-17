@@ -2,6 +2,7 @@ const {
   findAllShipments,
   findShipmentById,
   findShipmentHistory,
+  findShipmentAtTime,
   getShipmentStats,
 } = require("./shipmentQueries");
 
@@ -69,6 +70,26 @@ const getShipmentHistory = async (req, res, next) => {
   }
 };
 
+const getShipmentReplay = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { cutoffTime, targetVersion, daysAgo } = req.query;
+
+    const replayResult = await findShipmentAtTime(id, {
+      cutoffTime,
+      targetVersion,
+      daysAgo,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: replayResult,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getStats = async (req, res, next) => {
   try {
     const stats = await getShipmentStats();
@@ -86,5 +107,6 @@ module.exports = {
   getShipments,
   getShipmentById,
   getShipmentHistory,
+  getShipmentReplay,
   getStats,
 };

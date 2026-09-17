@@ -15,6 +15,7 @@ import {
 import useShipment from "../hooks/useShipment";
 import EventTimeline from "../components/EventTimeline";
 import SearchBar from "../components/SearchBar";
+import StateScrubber from "../components/StateScrubber";
 import { getShipmentStats } from "../services/api";
 
 const getStatusClass = (status) => {
@@ -580,6 +581,10 @@ const AuditDashboard = () => {
             </div>
           ) : (
             <>
+              <div style={{ padding: "1.25rem 1.25rem 0 1.25rem" }}>
+                <StateScrubber shipment={selectedShipment} events={events} />
+              </div>
+
               <div className="details-grid">
                 {/* Status */}
                 <div className="detail-item">

@@ -81,9 +81,46 @@ const getShipmentStats = async () => {
   };
 };
 
+const { replayEvents } = require("../aggregates/shipmentAggregate");
+
+const findShipmentAtTime = async (aggregateId, { cutoffTime, targetVersion, daysAgo } = {}) => {
+  const query = { aggregateId };
+
+  let timeLimit = null;
+  if (daysAgo !== undefined && daysAgo !== null && daysAgo !== "") {
+    const days = Number(daysAgo);
+    timeLimit = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  } else if (cutoffTime) {
+    timeLimit = new Date(cutoffTime);
+  }
+
+  if (timeLimit && !isNaN(timeLimit.getTime())) {
+    query.timestamp = { $lte: timeLimit };
+  } else if (targetVersion !== undefined && targetVersion !== null && targetVersion !== "") {
+    query.version = { $lte: Number(targetVersion) };
+  }
+
+  const events = await Event.find(query).sort({ version: 1 }).lean();
+  const reconstructedState = replayEvents(events, aggregateId);
+  const [stateWithRisk] = assessShipmentsRisk([reconstructedState]);
+
+  // Also fetch total events for total version count
+  const totalEventsCount = await Event.countDocuments({ aggregateId });
+
+  return {
+    reconstructedState: stateWithRisk,
+    appliedEventCount: events.length,
+    totalEventsCount,
+    cutoffTimestamp: timeLimit ? timeLimit.toISOString() : (events[events.length - 1]?.timestamp || null),
+    targetVersion: events.length > 0 ? events[events.length - 1].version : 0,
+    events,
+  };
+};
+
 module.exports = {
   findAllShipments,
   findShipmentById,
   findShipmentHistory,
+  findShipmentAtTime,
   getShipmentStats,
 };
