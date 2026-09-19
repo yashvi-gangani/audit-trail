@@ -9,7 +9,7 @@ class ConcurrencyError extends Error {
     this.expectedVersion = expectedVersion;
   }
 }
-
+//
 class EventStore {
   async saveEvent({ aggregateId, eventType, payload, expectedVersion }) {
     if (!aggregateId) {
