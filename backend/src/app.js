@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something broke internally!" });
-});
+}); // pass
 
 module.exports = app;
    
