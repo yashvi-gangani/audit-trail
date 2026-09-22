@@ -12,7 +12,7 @@ export function SearchBar({ shipments = [], selectedId, onSelect, loading }) {
   );
 
   const getStatusBadge = (status = '') => {
-    switch (status.toLowerCase()) {
+    switch (status.toLowerCase()) { 
       case 'delivered':
         return <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.65rem' }}><ShieldCheck size={10} /> Delivered</span>;
       case 'damaged':
@@ -27,7 +27,7 @@ export function SearchBar({ shipments = [], selectedId, onSelect, loading }) {
   return (
     <div className="search-sidebar-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
       
-      {/* Search Input Box */}
+      {/* Search Input Box .*/}
       <div style={{ position: 'relative' }}>
         <input
           type="text"

@@ -52,7 +52,7 @@ const useShipment = () => {
     } finally {
       setDetailsLoading(false);
     }
-  };
+  }; //fs
 
   const clearSelection = () => {
     setSelectedShipment(null);
