@@ -29,7 +29,7 @@ async function runVerificationTest() {
       payload: { containerId: 'C-9812', tempTarget: 4.0 }
     });
 
-    console.log(`✔️ Event 1 saved with version: ${e1.version}`);
+    console.log(`✔️ Event 1 saved with version: ${e1.version}`); //wrk
     console.log(`✔️ Event 2 saved with version: ${e2.version}`);
 
     // ---------------------------------------------------------------
