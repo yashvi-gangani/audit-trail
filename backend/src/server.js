@@ -11,7 +11,9 @@ process.on("unhandledRejection", (reason) => {
   console.error("[FATAL] Unhandled Rejection:", reason);
 });
 
-require("dotenv").config(); //dot
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -102,43 +104,55 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
-  try {
-    const mongoUri = process.env.MONGODB_URI;
+  let dbConnected = false;
+  const mongoUri = process.env.MONGODB_URI;
 
-    if (!mongoUri) {
-      throw new Error("MONGODB_URI is not defined in .env");
+  if (mongoUri) {
+    try {
+      console.log("📡 Connecting to MongoDB Atlas...");
+      await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 3000 });
+      console.log("✅ MongoDB Atlas connected successfully!");
+      dbConnected = true;
+    } catch (err) {
+      if (err.message.includes("bad auth") || err.code === 8000) {
+        console.warn("❌ MongoDB Atlas Authentication Failed: 'bad auth'");
+        console.warn("👉 Check database username/password in `backend/.env`.");
+      } else {
+        console.warn("⚠️ Primary MONGODB_URI connection failed:", err.message);
+      }
     }
+  }
 
-    await mongoose.connect(mongoUri);
+  if (!dbConnected) {
+    try {
+      const localUri = "mongodb://127.0.0.1:27017/audit_trail_db";
+      console.log(`🔄 Fallback: Attempting connection to local MongoDB (${localUri})...`);
+      await mongoose.connect(localUri, { serverSelectionTimeoutMS: 2000 });
+      console.log("✅ Local MongoDB connected successfully!");
+      dbConnected = true;
+    } catch (err) {
+      console.warn("⚠️ Local MongoDB unavailable (is MongoDB running locally?)");
+    }
+  }
 
-    console.log("✅ MongoDB connected");
-
-    // Rebuild shipment read models from the event store
+  if (dbConnected) {
     try {
       const results = await rebuildAllReadModels();
-
-      console.log(
-        `✅ Read models rebuilt: ${results.length} shipment(s)`
-      );
+      console.log(`✅ Read models rebuilt: ${results.length} shipment(s)`);
     } catch (error) {
-      console.warn(
-        "⚠️ Read-model rebuild skipped:",
-        error.message
-      );
+      console.warn("⚠️ Read-model rebuild skipped:", error.message);
     }
-
-    app.listen(PORT, () => {
-      console.log(
-        `🚀 AuditTrail server running on port ${PORT}`
-      );
-      console.log(
-        `   Health: http://localhost:${PORT}/api/health`
-      );
-    });
-  } catch (error) {
-    console.error("❌ Server startup failed:", error.message);
-    process.exit(1);
+  } else {
+    console.warn("\n-------------------------------------------------------------");
+    console.warn("⚠️  DATABASE WARNING: Running in offline resilience mode.");
+    console.warn("👉 Server active at http://localhost:" + PORT);
+    console.warn("-------------------------------------------------------------\n");
   }
+
+  app.listen(PORT, () => {
+    console.log(`🚀 AuditTrail server running on port ${PORT}`);
+    console.log(`   Health Check: http://localhost:${PORT}/api/health`);
+  });
 };
 
 startServer();

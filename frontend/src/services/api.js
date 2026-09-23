@@ -1,5 +1,5 @@
 const API_BASE_URL = "http://localhost:5001/api";
-//API
+
 export const getShipments = async () => {
   const response = await fetch(
     `${API_BASE_URL}/queries/shipments`
@@ -34,8 +34,6 @@ export const getShipmentHistory = async (id) => {
   }
 
   return response.json();
-<<<<<<< HEAD
-=======
 };
 
 export const getShipmentStats = async () => {
@@ -60,5 +58,4 @@ export const getShipmentReplay = async (id, params = {}) => {
   }
 
   return response.json();
->>>>>>> 5a6864019ecb2f30ba6196626022686061b49df7
 };
