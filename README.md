@@ -1,4 +1,4 @@
-# AuditTrail Enterprise (Group Project)
+# AuditTrail Enterprise 
 
 ### Event-Sourced Inventory & Logistics Ledger
 
