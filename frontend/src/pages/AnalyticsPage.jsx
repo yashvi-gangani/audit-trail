@@ -1,5 +1,6 @@
 import React from 'react';
 import { BarChart2, ShieldCheck, Thermometer, AlertTriangle, Layers, Activity, CheckCircle, Database } from 'lucide-react';
+import TemperatureChart from '../components/TemperatureChart';
 
 export function AnalyticsPage() {
   return (
@@ -8,9 +9,11 @@ export function AnalyticsPage() {
       {/* Page Header */}
       <div>
         <h1 style={{ fontSize: '1.6rem', fontWeight: '700' }}>System Audit Analytics & Telemetry Reports</h1>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Real-time telemetry performance metrics and CQRS event stream throughout</p>
-
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Real-time telemetry performance metrics and CQRS event stream throughput</p>
       </div>
+
+      {/* Fleet Sensor Telemetry Section */}
+      <TemperatureChart />
 
       {/* Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
