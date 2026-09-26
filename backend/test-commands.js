@@ -10,7 +10,7 @@ const {
   arriveAtPort,
 } = require("./src/commands/shipmentCommands");
 
-const { getStream } = require("./src/events/eventStore");
+const { getStream } = require("./src/events/eventStore"); //get
 
 const runTest = async () => {
   try {
