@@ -59,3 +59,20 @@ export const getShipmentReplay = async (id, params = {}) => {
 
   return response.json();
 };
+
+export const createShipment = async (shipmentData) => {
+  const response = await fetch(`${API_BASE_URL}/commands/shipments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(shipmentData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to create shipment");
+  }
+
+  return response.json();
+};

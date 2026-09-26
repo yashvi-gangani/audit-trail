@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Activity,
   Timer,
+  Plus,
 } from "lucide-react";
 //
 import useShipment from "../hooks/useShipment";
@@ -17,7 +18,7 @@ import EventTimeline from "../components/EventTimeline";
 import SearchBar from "../components/SearchBar";
 import StateScrubber from "../components/StateScrubber";
 import TemperatureChart from "../components/TemperatureChart";
-import { getShipmentStats } from "../services/api";
+import { getShipmentStats, createShipment } from "../services/api";
 
 const getStatusClass = (status) => {
   switch (status) {
@@ -67,6 +68,43 @@ const AuditDashboard = () => {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState("");
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    containerNumber: "",
+    origin: "",
+    destination: "",
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createSuccessMsg, setCreateSuccessMsg] = useState("");
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (!createForm.containerNumber || !createForm.origin || !createForm.destination) return;
+
+    try {
+      setCreateLoading(true);
+      const aggId = `SH-${Date.now().toString().slice(-6)}`;
+      await createShipment({
+        aggregateId: aggId,
+        containerNumber: createForm.containerNumber,
+        origin: createForm.origin,
+        destination: createForm.destination,
+      });
+      setCreateSuccessMsg(`Shipment ${aggId} created successfully!`);
+      setCreateForm({ containerNumber: "", origin: "", destination: "" });
+      setTimeout(() => {
+        setShowCreateModal(false);
+        setCreateSuccessMsg("");
+        refresh();
+        fetchStats();
+      }, 1000);
+    } catch (err) {
+      alert("Error creating shipment: " + err.message);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   const handleSelect = (id) => {
     setSelectedId(id);
@@ -187,47 +225,157 @@ const AuditDashboard = () => {
           </p>
         </div>
 
-        <button
-          className="refresh-button"
-          onClick={() => {
-            clearSelection();
-            setSelectedId(null);
-            refresh();
-            fetchStats();
-          }}
-          disabled={loading || statsLoading}
+        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              padding: "0.5rem 1rem",
+              background: "var(--primary)",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "var(--radius-sm)",
+              fontWeight: "600",
+              cursor: "pointer",
+              boxShadow: "0 0 15px var(--primary-glow)",
+            }}
+          >
+            <Plus size={17} /> Dispatch Shipment
+          </button>
+
+          <button
+            className="refresh-button"
+            onClick={() => {
+              clearSelection();
+              setSelectedId(null);
+              refresh();
+              fetchStats();
+            }}
+            disabled={loading || statsLoading}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              padding: "0.5rem 1rem",
+              background: "var(--bg-secondary)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-sm)",
+              color: "var(--text-primary)",
+              cursor:
+                loading || statsLoading
+                  ? "not-allowed"
+                  : "pointer",
+              opacity:
+                loading || statsLoading ? 0.7 : 1,
+            }}
+          >
+            <RefreshCw
+              size={17}
+              style={{
+                animation:
+                  loading || statsLoading
+                    ? "spin 1s linear infinite"
+                    : "none",
+              }}
+            />
+
+            {loading || statsLoading
+              ? "Refreshing..."
+              : "Refresh"}
+          </button>
+        </div>
+      </header>
+
+      {/* Create Shipment Modal */}
+      {showCreateModal && (
+        <div
           style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(4px)",
+            zIndex: 9999,
             display: "flex",
             alignItems: "center",
-            gap: "0.4rem",
-            padding: "0.5rem 1rem",
-            background: "var(--bg-secondary)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-sm)",
-            color: "var(--text-primary)",
-            cursor:
-              loading || statsLoading
-                ? "not-allowed"
-                : "pointer",
-            opacity:
-              loading || statsLoading ? 0.7 : 1,
+            justifyContent: "center",
+            padding: "1rem",
           }}
         >
-          <RefreshCw
-            size={17}
+          <div
             style={{
-              animation:
-                loading || statsLoading
-                  ? "spin 1s linear infinite"
-                  : "none",
+              background: "var(--bg-secondary)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-md)",
+              padding: "1.75rem",
+              maxWidth: "460px",
+              width: "100%",
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.25)",
             }}
-          />
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: "700" }}>Dispatch New Shipment</h2>
+              <button onClick={() => setShowCreateModal(false)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}>
+                <X size={20} />
+              </button>
+            </div>
 
-          {loading || statsLoading
-            ? "Refreshing..."
-            : "Refresh"}
-        </button>
-      </header>
+            {createSuccessMsg ? (
+              <div style={{ background: "var(--success-glow)", border: "1px solid var(--success)", padding: "1rem", borderRadius: "var(--radius-sm)", color: "var(--success)", fontWeight: 600, textAlign: "center" }}>
+                ✅ {createSuccessMsg}
+              </div>
+            ) : (
+              <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.3rem" }}>Container Number</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. C-9082"
+                    value={createForm.containerNumber}
+                    onChange={(e) => setCreateForm({ ...createForm, containerNumber: e.target.value })}
+                    style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.3rem" }}>Origin Hub</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Berlin Logistics Depot"
+                    value={createForm.origin}
+                    onChange={(e) => setCreateForm({ ...createForm, origin: e.target.value })}
+                    style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.3rem" }}>Destination Port</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Copenhagen Harbor"
+                    value={createForm.destination}
+                    onChange={(e) => setCreateForm({ ...createForm, destination: e.target.value })}
+                    style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                  <button type="button" onClick={() => setShowCreateModal(false)} style={{ padding: "0.6rem 1rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", background: "transparent", color: "var(--text-primary)", cursor: "pointer" }}>
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={createLoading} style={{ padding: "0.6rem 1.25rem", borderRadius: "var(--radius-sm)", border: "none", background: "var(--primary)", color: "#ffffff", fontWeight: 600, cursor: createLoading ? "not-allowed" : "pointer" }}>
+                    {createLoading ? "Dispatching..." : "Dispatch & Append Event"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Shipment Error */}
       {error && (
