@@ -19,7 +19,7 @@ const createEventHash = ({ //hashes
   });
 
   return crypto
-    .createHash("sha256")
+    .createHash("sha256")//crypto
     .update(data)
     .digest("hex");
 };

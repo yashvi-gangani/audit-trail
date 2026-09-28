@@ -1,5 +1,23 @@
 const { EVENT_TYPES } = require("../events/eventTypes");
-const { append } = require("../events/eventStore");
+const { eventStore } = require("../events/eventStore");
+const { projectEvent } = require("../projections/shipmentProjection");
+
+const append = async ({ aggregateId, eventType, payload, expectedVersion }) => {
+  const savedEvent = await eventStore.saveEvent({
+    aggregateId,
+    eventType,
+    payload,
+    expectedVersion,
+  });
+
+  try {
+    await projectEvent(savedEvent);
+  } catch (err) {
+    console.warn("⚠️ Projection update failed:", err.message);
+  }
+
+  return savedEvent;
+};
 
 const createShipment = async ({
   aggregateId,

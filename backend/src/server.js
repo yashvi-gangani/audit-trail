@@ -32,11 +32,11 @@ const { rebuildAllReadModels } = require("./projections/shipmentProjection");
 const app = express();
 
 // --------------------------------------------------
-// Middleware
+// Middleware 
 // --------------------------------------------------
 
 app.use(
-  helmet({
+  helmet({ 
     crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: false,
   })
@@ -73,8 +73,8 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     service: "AuditTrail Enterprise AI — Logistics Ledger",
     dbState:
-      mongoose.connection.readyState === 1
-        ? "connected"
+      mongoose.connection.readyState === 1             //connect are dis
+        ? "connected"                            
         : "disconnected",
     timestamp: new Date().toISOString(),
   });
