@@ -6,7 +6,7 @@ export const getShipments = async () => {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch shipments");
+    throw new Error("Failed to fetch shipments"); //ok
   }
 
   return response.json();
