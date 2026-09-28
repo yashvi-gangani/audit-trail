@@ -1,3 +1,4 @@
+// Analytics Page
 import React from 'react';
 import { BarChart2, ShieldCheck, Thermometer, AlertTriangle, Layers, Activity, CheckCircle, Database } from 'lucide-react';
 

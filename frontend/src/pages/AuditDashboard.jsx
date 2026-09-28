@@ -521,23 +521,22 @@ const AuditDashboard = () => {
               gap: "0.75rem",
             }}
           >
-            {Object.entries(stats.byStatus || {}).map(
-              ([status, count]) => (
-                <div
-                  key={status}
-                  style={{
-                    padding: "0.55rem 0.8rem",
-                    background: "var(--bg-secondary)",
-                    border:
-                      "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: "0.8rem",
-                  }}
-                >
-                  <strong>{status}</strong>: {count}
-                </div>
-              ),
-            )}
+            {(stats.byStatus || []).map(({ status, count }) => (
+  <div
+    key={status}
+    className="flex items-center justify-between py-2"
+  >
+    <div className="flex items-center gap-2">
+      <span
+        className={`status ${getStatusClass(status)}`}
+      >
+        {status}
+      </span>
+    </div>
+
+    <strong>{count}</strong>
+  </div>
+))}
           </div>
         </section>
       )}
