@@ -1,0 +1,49 @@
+services:
+  # ─── Backend API ──────────────────────────────────────────────────────────
+  - type: web
+    name: audittrail-enterprise-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES
+        value: 15m
+      - key: MONGODB_URI
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLIENT_URL
+        value: https://audittrail-enterprise-ui.onrender.com
+
+  # ─── Frontend Static Site ──────────────────────────────────────────
+  - type: web
+    name: audittrail-enterprise-ui
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/dist
+    pullRequestPreviewsEnabled: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://audittrail-enterprise-api.onrender.com/api
+      - key: VITE_SOCKET_URL
+        value: https://audittrail-enterprise-api.onrender.com
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff

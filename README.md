@@ -116,3 +116,34 @@ The existing Gemini-powered AI page (`/ai-insights`) is well built, but every fe
 
 All three are combined behind one call: `GET /api/ai/shipments/:id/insights` (JWT-protected, same as the rest of `/api/ai`). Try it against the seeded demo shipments — `SHP-DEMO-003` has a real temperature excursion (16.8°C) and a `DELAYED` status, so it's the one that shows every feature lighting up.
 
+## 🔧 Round 2 fixes
+
+1. **Rate limiter was blocking normal local testing.** `generalLimiter`/`authLimiter`/`commandLimiter` now `skip()` entirely when `NODE_ENV !== 'production'` — full enforcement is preserved in production, but a long local testing session (multiple tabs, React StrictMode double-firing effects) will no longer lock you out with "Too many requests." If you restart the dev server and still see the message, you're likely running with `NODE_ENV=production` set somewhere in your shell — check with `echo $NODE_ENV`.
+2. **The Gemini banner on `/ai-insights` always said "add your API key," even after you'd added a real one.** It was a hardcoded string, not tied to any actual check. Added `GET /api/ai/status` (checks whether `GEMINI_API_KEY` is set and the SDK initializes) and wired the banner to call it — it now correctly shows either "Gemini AI is active — running on gemini-1.5-flash" or "Gemini AI is not configured," live.
+3. **`.alert-banner` CSS class didn't exist.** The banner above was rendering with zero styling (no background/border color) because `global.css` never defined `.alert-banner` or its `.info`/`.success`/`.warning`/`.critical` variants. Added them, using the app's existing theme variables so it respects light/dark mode.
+4. Fixed the same `:5000` → `:5001` port typo on the Settings → API Keys tab's curl example (README already had this fixed from round 1).
+
+## 🗄️ Connecting your own MongoDB
+
+The project ships with a shared demo Atlas cluster in `server/.env` so it runs out of the box. To point it at your own database instead:
+
+**Option A — MongoDB Atlas (free tier, recommended)**
+1. Go to https://cloud.mongodb.com → create a free account/cluster (M0 tier).
+2. Database Access → add a database user (username + password).
+3. Network Access → add IP `0.0.0.0/0` (allow from anywhere) for local dev, or your current IP.
+4. Clusters → Connect → "Drivers" → copy the connection string, e.g.:
+   `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/audittrail?retryWrites=true&w=majority`
+5. Paste it into `server/.env` as `MONGODB_URI=...` (replace `<username>`/`<password>` with your real values, URL-encode any special characters in the password).
+6. Restart the server: `npm run dev`. On first connect to an empty database it auto-seeds demo users, shipments, alert rules and audit logs (see `src/scripts/seedDemo.js`).
+
+**Option B — Local MongoDB**
+1. Install MongoDB Community Server, then run `mongod` (or `brew services start mongodb-community` on macOS).
+2. Set `MONGODB_URI=mongodb://127.0.0.1:27017/audittrail` in `server/.env`.
+3. `npm run dev` — same auto-seed behavior.
+
+**Option C — In-memory (no install, no account, non-persistent)**
+Set `MONGODB_URI=memory` in `server/.env`. Uses `mongodb-memory-server`, which downloads a real `mongod` binary on first run (needs internet access once) and keeps everything in RAM — perfect for offline demos, but data is lost when the server stops.
+
+Either way, once connected you own the data — the seed script only runs when the `User` collection is empty, so it won't touch a database that already has data in it.
+
+
