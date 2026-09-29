@@ -1,149 +1,454 @@
-# 🛡 AuditTrail Enterprise AI
+# AuditTrail — Event-Sourced Inventory & Logistics Ledger
 
-> AI-powered audit trail, compliance monitoring, and anomaly detection platform.
+AuditTrail is an enterprise-style inventory and logistics tracking platform built around **event sourcing, immutable audit trails, real-time shipment monitoring, analytics, alerts, and AI-assisted insights**.
 
-![Stack](https://img.shields.io/badge/React-18-blue) ![Stack](https://img.shields.io/badge/Node.js-Express-green) ![Stack](https://img.shields.io/badge/MongoDB-Mongoose-brightgreen) ![Stack](https://img.shields.io/badge/AI-Gemini-purple)
+The system records shipment and container events as an append-only history and reconstructs the current state by replaying those events. This provides traceability, auditability, and a reliable history of operational changes.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Features
 
-### Prerequisites
-- Node.js 18+
-- MongoDB (local or Atlas)
+### 🔐 Authentication & Authorization
 
-### 1. Server Setup
+* User registration and login
+* JWT-based authentication
+* Protected API routes
+* Session management
+* Role-based access support
 
-```bash
-cd server
-npm install
-cp .env.example .env
-# Edit .env with your MongoDB URI and Gemini API key
-npm run seed    # Seed demo data (500 logs + users)
-npm run dev     # Start server on :5001 (see server/.env PORT)
-```
+### 📦 Shipment & Logistics Management
 
-### 2. Client Setup
+* Create and manage shipments
+* Track shipment status
+* View shipment details
+* Monitor shipment lifecycle
+* Shipment event history
+* Real-time shipment updates
 
-```bash
+### 🧾 Event-Sourced Audit Trail
+
+AuditTrail maintains an immutable event history for operational activities.
+
+Example event lifecycle:
+CONTAINER_CREATED
+        ↓
+LOADED_ON_SHIP
+        ↓
+TEMPERATURE_SPIKE
+        ↓
+ARRIVED_AT_PORT
+
+The current shipment state can be reconstructed by replaying the stored events.
+
+### 🔄 Event Replay & State Reconstruction
+
+* Event reducers
+* Event replay engine
+* Shipment state reconstruction
+* Historical state inspection
+* State scrubbing / historical state navigation
+
+### 📊 Analytics & Dashboard
+
+* Shipment statistics
+* Operational analytics
+* Shipment status distribution
+* Temperature monitoring
+* Dashboard metrics
+* Analytics visualizations
+
+### 🚨 Alerts & Notifications
+
+* Alert rules
+* Operational alerts
+* Shipment-related notifications
+* Real-time alert handling
+
+### 🤖 AI-Powered Features
+
+* AI-assisted shipment insights
+* Shipment risk analysis
+* AI-generated operational insights
+* AI-related controllers and services
+
+### 📈 Reports & Audit Logs
+
+* Audit log management
+* Operational reports
+* Historical event tracking
+* Searchable audit information
+
+### ⚡ Real-Time Communication
+
+* Socket.IO integration
+* Real-time shipment updates
+* Real-time notifications
+* Server-side socket handlers
+
+---
+
+## 🏗️ Project Architecture
+
+The project is divided into two main applications:
+AuditTrail/
+│
+├── client/                 # React frontend
+│
+├── server/                 # Node.js + Express backend
+│
+├── .gitignore
+├── README.md
+└── render.yaml
+
+---
+
+## 💻 Tech Stack
+
+### Frontend
+
+* React
+* Vite
+* JavaScript
+* Axios
+* Zustand
+* Socket.IO Client
+* CSS
+
+### Backend
+
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* Socket.IO
+* JWT
+* bcryptjs
+* Joi
+* Helmet
+* Express Rate Limit
+* Morgan
+
+### AI
+
+* Google Generative AI
+
+### Development
+
+* Git
+* GitHub
+* Nodemon
+* Vite
+
+---
+
+## 📁 Client Structure
+client/
+│
+├── src/
+│   ├── api/
+│   │   └── axios.js
+│   │
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Header.jsx
+│   │   │   └── Sidebar.jsx
+│   │   │
+│   │   └── ui/
+│   │       ├── Modal.jsx
+│   │       ├── SeverityBadge.jsx
+│   │       ├── Skeleton.jsx
+│   │       ├── StatCard.jsx
+│   │       └── Toast.jsx
+│   │
+│   ├── hooks/
+│   │   └── useSocket.js
+│   │
+│   ├── pages/
+│   │   ├── AIInsightsPage.jsx
+│   │   ├── AlertsPage.jsx
+│   │   ├── AnalyticsPage.jsx
+│   │   ├── AuditLogsPage.jsx
+│   │   ├── DashboardPage.jsx
+│   │   ├── ReportsPage.jsx
+│   │   ├── SettingsPage.jsx
+│   │   ├── ShipmentsPage.jsx
+│   │   ├── StateScrubberPage.jsx
+│   │   ├── TimelinePage.jsx
+│   │   └── auth/
+│   │       ├── LoginPage.jsx
+│   │       └── RegisterPage.jsx
+│   │
+│   ├── store/
+│   │   ├── authStore.js
+│   │   ├── shipmentStore.js
+│   │   └── uiStore.js
+│   │
+│   ├── styles/
+│   │   └── global.css
+│   │
+│   ├── App.jsx
+│   └── main.jsx
+│
+├── index.html
+├── package.json
+└── vite.config.js
+
+---
+
+## 📁 Server Structure
+server/
+│
+├── src/
+│   ├── controllers/
+│   │   ├── aiController.js
+│   │   ├── alertsController.js
+│   │   ├── analyticsController.js
+│   │   ├── authController.js
+│   │   ├── commandController.js
+│   │   ├── ingestController.js
+│   │   ├── logsController.js
+│   │   ├── queryController.js
+│   │   └── shipmentAIController.js
+│   │
+│   ├── engine/
+│   │   ├── eventReducers.js
+│   │   └── eventReplay.js
+│   │
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── errorHandler.js
+│   │   └── rateLimiter.js
+│   │
+│   ├── models/
+│   │   ├── AlertRule.js
+│   │   ├── AuditLog.js
+│   │   ├── EventStore.js
+│   │   ├── Notification.js
+│   │   ├── Session.js
+│   │   ├── Shipment.js
+│   │   └── User.js
+│   │
+│   ├── projections/
+│   │   └── shipmentProjector.js
+│   │
+│   ├── routes/
+│   │   ├── ai.js
+│   │   ├── alerts.js
+│   │   ├── analytics.js
+│   │   ├── auth.js
+│   │   ├── ingest.js
+│   │   ├── logs.js
+│   │   ├── commands/
+│   │   │   └── shipments.js
+│   │   └── queries/
+│   │       └── shipments.js
+│   │
+│   ├── scripts/
+│   │   ├── seed.js
+│   │   └── seedDemo.js
+│   │
+│   └── socket/
+│       └── socketHandlers.js
+│
+├── server.js
+├── package.json
+└── Procfile
+
+---
+
+## 🔄 Event-Sourcing Flow
+
+AuditTrail follows an event-driven architecture:
+User / System Action
+        │
+        ▼
+   Command API
+        │
+        ▼
+   Event Created
+        │
+        ▼
+   Event Store
+        │
+        ├───────────────► Audit History
+        │
+        ▼
+   Event Replay / Reducer
+        │
+        ▼
+ Current Shipment State
+        │
+        ▼
+   Read / Query APIs
+        │
+        ▼
+      Client
+
+The event store acts as the historical source of truth, while projections provide convenient read models for the application.
+
+---
+
+## 🛠️ Installation
+
+### 1. Clone the repository
+git clone https://github.com/yashvi-gangani/audit-trail.git
+cd audit-trail
+
+---
+
+### 2. Install Client Dependencies
 cd client
 npm install
-npm run dev     # Start on :5173
-```
-
-### 3. Login
-
-| Role    | Email                    | Password     |
-|---------|--------------------------|--------------|
-| Admin   | admin@audittrail.io      | admin123     |
-| Auditor | sarah@audittrail.io      | auditor123   |
-| Viewer  | marcus@audittrail.io     | viewer123    |
 
 ---
 
-## 🤖 AI Features (Gemini)
+### 3. Install Server Dependencies
 
-Add your key to `server/.env`:
-```
-GEMINI_API_KEY=your_key_here
-```
-Get a key at https://aistudio.google.com/
-
-Without a key, statistical analysis still works fully.
+Open another terminal:
+cd server
+npm install
 
 ---
 
-## 📡 Ingest API
+## ▶️ Running the Application
 
-Send audit events from any service:
+### Start Backend
+cd server
+npm run dev
 
-```bash
-curl -X POST http://localhost:5001/api/ingest \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '[{"userId":"u1","userName":"John","action":"LOGIN","resource":"Session","severity":"INFO","status":"SUCCESS"}]'
-```
 
----
+The backend will start using Nodemon.
 
-## 🏗 Architecture
+### Start Frontend
 
-```
-client/          React + Vite frontend (port 5173)
-server/          Node.js + Express backend (port 5001)
-  ├── models/    MongoDB schemas
-  ├── routes/    API endpoints
-  ├── controllers/
-  ├── services/  AI + alert engine
-  └── socket/    Socket.IO real-time events
-```
+In another terminal:
+cd client
+npm run dev
+
+The Vite development server will provide the frontend URL in the terminal.
 
 ---
 
-## ✨ Features
+## 🌱 Database Seeding
 
-- **Real-time log streaming** via Socket.IO
-- **AI anomaly detection** — off-hours access, bulk deletes, privilege escalation
-- **Natural language queries** — "Show failed logins from yesterday"
-- **Executive summaries** — AI-generated compliance reports
-- **User risk scoring** — behavioral risk calculation
-- **Alert rules** — configurable threshold-based alerts
-- **Activity heatmap** — hour × day-of-week visualization
-- **SOC 2, GDPR, ISO 27001** report templates
-- **Role-based access** — Admin, Auditor, Viewer
-- **Event ingestion API** with API key auth
+To run the standard seed:
+cd server
+npm run seed
+
+For demo data:
+npm run seed:demo
+
+
+Only run seed commands when you intentionally want to populate/reset the corresponding development data.
 
 ---
 
-## 🔧 Audit fixes applied to this build
+## 📡 Real-Time Updates
 
-A few real bugs were found and fixed against the PDF's Project 2 spec:
+AuditTrail uses **Socket.IO** for real-time communication.
 
-1. **`routes/ingest.js` crashed on API-key auth.** It imported `apiKeyMiddleware` from `middleware/auth.js`, but that function never existed — any external system posting to `/api/ingest` with an `X-API-Key` header (rather than a Bearer token) would hit `TypeError: apiKeyMiddleware is not a function`. Added a real implementation that looks the user up by their stored `apiKey`.
-2. **`requireRole('admin', 'auditor')` silently dropped the second role.** The factory only accepted a single array argument (`requireRole(['admin','manager'])`), but `routes/alerts.js` and `routes/logs.js` called it with two separate string arguments instead. Since the function only ever saw the first argument, `auditor` was quietly excluded — auditors couldn't create/update alert rules or flag logs even though the code clearly intended them to. `requireRole` now accepts both calling styles.
-3. **No seeded user actually had the `auditor` role.** Sarah Chen's demo account had `password: 'auditor123'` but `role: 'manager'` in both seed scripts — so the `auditor`-only permission paths (fixed in #2) had no demo account to test them with. Fixed her role to `auditor`, matching her password and the README's login table.
-4. **Port mismatch in this README** (said `:5000`, `.env`/`.env.example` actually default to `5001`) — corrected above.
+Real-time functionality can be used for:
 
-Everything else — CQRS command/query split, the append-only Event Store with immutability guards, optimistic concurrency control via `expectedVersion`, the read-model projector, state-scrubbing/rollback, and the Recharts temperature overlay — was already implemented correctly.
+* Shipment updates
+* Alerts
+* Notifications
+* Operational events
+* Dashboard updates
 
-## 🤖 New AI features added (shipment domain)
+---
 
-The existing Gemini-powered AI page (`/ai-insights`) is well built, but every feature on it — natural language query, anomaly detection, executive summaries, risk scores — analyzes the **AuditLog** collection (who logged in, who deleted what). None of it actually looks at the **event-sourced shipment ledger** the PDF's "Audit Trail" project is about. Three new features close that gap, added as `server/src/controllers/shipmentAIController.js` and a new "Shipment Intelligence" panel at the top of the AI Insights page:
+## 🧠 AI Architecture
 
-1. **Shipment Anomaly Detection** — cold-chain temperature excursions, rapid temperature swings (possible sensor fault or an opened door), stalled shipments with no recent events, hazmat-specific severity escalation, and past-due deliveries.
-2. **Delay-Risk Prediction** — a 0–100 heuristic score (LOW/MEDIUM/HIGH) built from event-derived signals: current status, temperature alert count, whether the ETA has already passed, hazmat cargo, and event activity relative to shipment age.
-3. **AI Narrative** — a natural-language summary of a shipment's full event history. Uses the same Gemini pattern as the rest of the app when `GEMINI_API_KEY` is set, and automatically falls back to a deterministic local template when it isn't — the feature never breaks for someone without a key.
+AI functionality is separated from the core event-sourcing mechanism.
 
-All three are combined behind one call: `GET /api/ai/shipments/:id/insights` (JWT-protected, same as the rest of `/api/ai`). Try it against the seeded demo shipments — `SHP-DEMO-003` has a real temperature excursion (16.8°C) and a `DELAYED` status, so it's the one that shows every feature lighting up.
+The backend contains dedicated AI controllers for:
+AI Insights
+     │
+     ├── Shipment Analysis
+     ├── Risk Analysis
+     └── Operational Insights
 
-## 🔧 Round 2 fixes
+The core shipment history remains event-driven and independently auditable.
 
-1. **Rate limiter was blocking normal local testing.** `generalLimiter`/`authLimiter`/`commandLimiter` now `skip()` entirely when `NODE_ENV !== 'production'` — full enforcement is preserved in production, but a long local testing session (multiple tabs, React StrictMode double-firing effects) will no longer lock you out with "Too many requests." If you restart the dev server and still see the message, you're likely running with `NODE_ENV=production` set somewhere in your shell — check with `echo $NODE_ENV`.
-2. **The Gemini banner on `/ai-insights` always said "add your API key," even after you'd added a real one.** It was a hardcoded string, not tied to any actual check. Added `GET /api/ai/status` (checks whether `GEMINI_API_KEY` is set and the SDK initializes) and wired the banner to call it — it now correctly shows either "Gemini AI is active — running on gemini-1.5-flash" or "Gemini AI is not configured," live.
-3. **`.alert-banner` CSS class didn't exist.** The banner above was rendering with zero styling (no background/border color) because `global.css` never defined `.alert-banner` or its `.info`/`.success`/`.warning`/`.critical` variants. Added them, using the app's existing theme variables so it respects light/dark mode.
-4. Fixed the same `:5000` → `:5001` port typo on the Settings → API Keys tab's curl example (README already had this fixed from round 1).
+---
 
-## 🗄️ Connecting your own MongoDB
+## 🔒 Security
 
-The project ships with a shared demo Atlas cluster in `server/.env` so it runs out of the box. To point it at your own database instead:
+The application includes several security mechanisms:
 
-**Option A — MongoDB Atlas (free tier, recommended)**
-1. Go to https://cloud.mongodb.com → create a free account/cluster (M0 tier).
-2. Database Access → add a database user (username + password).
-3. Network Access → add IP `0.0.0.0/0` (allow from anywhere) for local dev, or your current IP.
-4. Clusters → Connect → "Drivers" → copy the connection string, e.g.:
-   `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/audittrail?retryWrites=true&w=majority`
-5. Paste it into `server/.env` as `MONGODB_URI=...` (replace `<username>`/`<password>` with your real values, URL-encode any special characters in the password).
-6. Restart the server: `npm run dev`. On first connect to an empty database it auto-seeds demo users, shipments, alert rules and audit logs (see `src/scripts/seedDemo.js`).
+* JWT authentication
+* Password hashing with bcrypt
+* Protected routes
+* Rate limiting
+* Helmet security headers
+* Input validation using Joi
+* MongoDB sanitization
+* Environment-variable based secrets
 
-**Option B — Local MongoDB**
-1. Install MongoDB Community Server, then run `mongod` (or `brew services start mongodb-community` on macOS).
-2. Set `MONGODB_URI=mongodb://127.0.0.1:27017/audittrail` in `server/.env`.
-3. `npm run dev` — same auto-seed behavior.
+---
 
-**Option C — In-memory (no install, no account, non-persistent)**
-Set `MONGODB_URI=memory` in `server/.env`. Uses `mongodb-memory-server`, which downloads a real `mongod` binary on first run (needs internet access once) and keeps everything in RAM — perfect for offline demos, but data is lost when the server stops.
+## 📊 Core Concepts
 
-Either way, once connected you own the data — the seed script only runs when the `User` collection is empty, so it won't touch a database that already has data in it.
+### Event Store
 
+Stores operational events as historical records.
+
+### Event Replay
+
+Replays events in sequence to reconstruct the state of an entity.
+
+### Reducer
+
+Applies an event to the previous state and produces the next state.
+
+### Projection
+
+Creates query-friendly representations of event-driven data.
+
+### Audit Log
+
+Provides a record of important application and operational activities.
+
+---
+
+## 🧪 Development
+
+### Frontend
+cd client
+npm run dev
+
+### Backend
+cd server
+npm run dev
+
+
+### Production Backend
+cd server
+npm start
+
+---
+
+## 🚀 Deployment
+
+The backend includes a `Procfile` for deployment environments that support it.
+
+Before deployment:
+
+1. Configure production environment variables.
+2. Configure MongoDB.
+3. Configure the frontend API URL.
+4. Configure CORS.
+5. Add required AI API credentials.
+6. Build and deploy the frontend.
+7. Deploy the backend.
+
+Never expose production secrets in the repository.
+
+---
+
+## 👥 Project
+
+**AuditTrail — Event-Sourced Inventory & Logistics Ledger**
+
+Built as a collaborative enterprise application using modern full-stack technologies, event sourcing, real-time communication, analytics, and AI-assisted functionality.
 
